@@ -629,7 +629,7 @@ const APP_COPY: Record<SupportedLocale, Record<string, string>> = {
     "scan.status_backup": "Camera opens for capture. Paste text is available if this device cannot read photos.",
     "scan.limited_photos": "Photo access is limited. Pick an allowed image, open Settings for more access, or paste text.",
     "scan.quick_seed": "chem lab report due tomorrow, estimate 2 hours",
-    "paywall.title": "{name}, unlock trusted syllabus scan.",
+    "paywall.title": "{name}, turn your semester into a daily plan.",
     "paywall.sub_no_import": "Unlock first, then scan, upload, paste, or add manually. StudyPlanner shows every class, exam, and deadline for review before anything reaches your dashboard, widgets, reminders, or next moves.",
     "paywall.sub_import": "Your preview is ready. Unlock, return to Review, then approve it for the live dashboard, reminders, and widgets.",
     "paywall.message_loading": "Connecting to the App Store...",
@@ -5297,6 +5297,22 @@ async function loadSimulatorCaptureConfig(): Promise<SimulatorCaptureConfig | nu
   }
 }
 
+// QA/App Preview fixture only: a realistic lecture note so Exam Mode shows real
+// cited cards and questions on every device (heuristic path included).
+const QA_TREES_LECTURE_NOTE = [
+  "Lecture 9: Trees and hashing",
+  "Binary tree: a tree where each node has at most two children.",
+  "Binary search tree: a binary tree where left keys are smaller and right keys are larger than the node.",
+  "Tree height: the number of edges on the longest path from the root to a leaf.",
+  "Balanced tree: a tree whose height stays O(log n) as keys are inserted.",
+  "In-order traversal: visits left subtree, node, then right subtree, giving sorted order in a BST.",
+  "Hash table: stores key-value pairs in buckets chosen by a hash function.",
+  "Collision: two keys that hash to the same bucket.",
+  "Load factor: the number of stored keys divided by the number of buckets.",
+  "Heap: a complete binary tree where every parent is smaller than its children (min-heap).",
+  "Midterm covers BST insert, delete, traversal order, and hash collisions.",
+].join("\n");
+
 function buildBuild57FixtureData() {
   const copy = previewCopy();
   const activeClass: ClassItem = {
@@ -5425,7 +5441,7 @@ function buildBuild57FixtureData() {
     suggestedTasks: [copy.next || "Review traversal examples", copy.detail || "Make flashcards for tree rotations"],
     examId: exam.id,
     pages: 3,
-    sourceText: copy.summary1 || "Mock syllabus notes: CS 201 covers arrays, linked lists, stacks, queues, trees, hashing, and a midterm review.",
+    sourceText: `${copy.summary1 || "Mock syllabus notes: CS 201 covers arrays, linked lists, stacks, queues, trees, hashing, and a midterm review."}\n${QA_TREES_LECTURE_NOTE}`,
     reviewedConcepts: (copy.term1 || "Stacks|Queues").split("|").slice(0, 2),
     generatedAssetsAt: new Date().toISOString(),
   };
@@ -5754,6 +5770,11 @@ function simulatorCaptureNavItem(config: SimulatorCaptureConfig, importBatch: Im
   if (config.screen === "assessmentEdit") return { route: "assessmentDetail", params: { id: "qa-midterm", edit: "1" } };
   if (config.screen === "assessmentDetail") return { route: "assessmentDetail", params: { id: "qa-midterm" } };
   if (config.screen === "noteDetail") return { route: "noteDetail", params: { id: "qa-note-trees" } };
+  // 2.2 surfaces (QA capture + App Preview recording).
+  if (config.screen === "examMode") return { route: "examMode", params: { id: "qa-midterm" } };
+  if (config.screen === "practiceCards") return { route: "practice", params: { noteId: "qa-note-trees", mode: "cards" } };
+  if (config.screen === "practiceQuiz") return { route: "practice", params: { noteId: "qa-note-trees", mode: "quiz" } };
+  if (config.screen === "forecast") return { route: "forecast" };
   if (config.prompt === "archiveClass") return { route: "classDetail", params: { id: "qa-cs201" } };
   if (config.onboardingIndex != null) return { route: "onboarding", params: { onboardingIndex: String(config.onboardingIndex) } };
   if (config.route === "studySession") return { route: "studySession" };
@@ -5797,10 +5818,19 @@ function buildSimulatorCaptureState(config: SimulatorCaptureConfig): SimulatorCa
   const currentImport = config.screen === "review_edit" || config.route === "review"
     ? useBuild66Fixture ? buildBuild66ImportFixture(data) : buildBuild57ImportFixture(data)
     : null;
+  const baseNavItem = simulatorCaptureNavItem(config, currentImport);
+  // 2.2 capture screens target whatever exam/note the chosen fixture contains.
+  const richestNote = data.notes.slice().sort((a, b) => (b.sourceText || "").length - (a.sourceText || "").length)[0];
+  const nextExam = data.exams.slice().sort((a, b) => a.dueDate.localeCompare(b.dueDate)).find((exam) => daysUntilExam(exam) >= 0) || data.exams[0];
+  const navItem = baseNavItem.route === "examMode" && nextExam
+    ? { route: baseNavItem.route, params: { id: nextExam.id } }
+    : baseNavItem.route === "practice" && richestNote
+      ? { route: baseNavItem.route, params: { ...baseNavItem.params, noteId: richestNote.id } }
+      : baseNavItem;
   return {
     data,
     currentImport,
-    navItem: simulatorCaptureNavItem(config, currentImport),
+    navItem,
     entitlementStatus: config.emptyPlanner ? "inactive" : "active",
     prompt: config.prompt,
   };
@@ -10541,9 +10571,9 @@ function ReviewImport({ data, mutate, persistPlannerSnapshot, nav, theme, curren
             <Text selectable style={{ color: theme.label, fontWeight: "900" }}>{notesOnlyImport ? textFor("note.generated_assets", "Generated study assets") : textFor("review.pressure_preview", "Pressure preview")}: {notesOnlyImport ? `${textFor("note.flashcards", "Flashcards")} + ${textFor("note.quiz", "Quiz")}` : pressureWeek}</Text>
             <Text selectable style={{ color: theme.label2, lineHeight: 20, marginTop: 4 }}>{notesOnlyImport ? textFor("note.suggested_tasks", "Suggested study tasks") : textFor("review.first_action", "First recommended action")}: {firstAction}</Text>
           </View>
-          <View style={{ flexDirection: "row", gap: 9, marginTop: 12 }}>
-            <View style={{ flex: 1 }}><Button label={textFor("review.approve", "Approve trusted")} theme={theme} icon="target" onPress={highConfidenceCount ? approveTrusted : undefined} /></View>
-            <View style={{ flex: 1 }}><Button label={textFor("review.manual", "Manual setup")} theme={theme} secondary icon="plus" onPress={() => nav.push("paste", { mode: "manual" })} /></View>
+          <View style={{ marginTop: 3 }}>
+            <Button label={textFor("review.approve", "Approve trusted")} theme={theme} icon="target" onPress={highConfidenceCount ? approveTrusted : undefined} />
+            <Button label={textFor("review.manual", "Manual setup")} theme={theme} secondary icon="plus" onPress={() => nav.push("paste", { mode: "manual" })} />
           </View>
         </Card>
         {forecast ? (
