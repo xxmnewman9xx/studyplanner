@@ -40,7 +40,7 @@ assert.doesNotMatch(appSource, /permissions\.photo_library/, "Photo permission c
 assert.match(appSource, /const PHOTO_PERMISSION_COPY: Record<SupportedLocale/, "Photo permission title and target must have explicit runtime localization coverage");
 
 assert.match(reviewImport, /adjustsFontSizeToFit minimumFontScale=\{0\.72\}[\s\S]*\{metric\.label\}/, "Review summary labels must remain readable without truncation");
-assert.match(reviewImport, /label=\{textFor\("review\.approve", "Approve trusted"\)\}[^\n]+highConfidenceCount/, "Review trusted-item CTA must keep a readable label and disable at zero trusted items");
+assert.match(reviewImport, /label=\{[^\n]*textFor\("review\.approve", "Approve trusted"\)[^\n]*\}[^\n]+onPress=\{highConfidenceCount \? approveTrusted : undefined\}/, "Review trusted-item CTA must keep a readable label and disable at zero trusted items");
 assert.match(reviewImport, /textFor\("review\.existing_found", "Existing item found"\)/, "Reconciliation rows must distinguish an existing match from low-confidence extraction");
 assert.match(reviewImport, /return trusted \? \{ \.\.\.candidate, approved: true \} : candidate;/, "Approve trusted must preserve manual approval choices on non-trusted rows");
 assert.match(reviewImport, /textFor\("review\.apply", "Apply approved items \(\{count\}\)", \{ count: approvedCount \}\)/, "Review apply CTA must disclose the exact approved row count without claiming a content type");
