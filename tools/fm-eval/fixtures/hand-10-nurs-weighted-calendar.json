@@ -1,0 +1,68 @@
+{
+  "id": "hand-10-nurs-weighted-calendar",
+  "name": "NURS 310 weight table and 'Mon 9/14' calendar",
+  "source": "handwritten",
+  "locale": "en-US",
+  "now": "2026-08-20",
+  "text": "NURS 310: Adult Health Nursing I\nSchool of Nursing — Fall 2026\nCourse faculty: Prof. Dana Whitfield, MSN, RN · Clinical coordinator: J. Ortiz, RN\nClass: Mon 8:00-11:50 AM, Health Sciences 140 · Clinical: Thu/Fri (site assigned)\n\nCourse Outcomes\n1. Apply the nursing process to adults with common acute and chronic conditions.\n2. Demonstrate safe medication administration in the clinical setting.\n3. Communicate effectively with patients, families, and the care team.\n\nEvaluation Methods                          Weight\nUnit Exam 1                                 15%\nUnit Exam 2                                 15%\nUnit Exam 3                                 15%\nComprehensive Final                         25%\nDosage calculation competency (pass/fail)   Required\nCare plan 1                                 10%\nCare plan 2                                 10%\nATI practice assessment                     5%\nCase study presentation                     5%\nClinical performance                        Pass/Fail\n\nA minimum weighted exam average of 77% is required to pass the course.\n\nCalendar\nMon 8/24   Orientation; fluid & electrolytes\nMon 8/31   Acid-base balance — Dosage calculation competency (in class)\nMon 9/7    NO CLASS (Labor Day)\nMon 9/14   Perioperative care\nMon 9/21   UNIT EXAM 1\nFri 9/25   Care plan 1 due by 2359 (Canvas)\nMon 9/28   Respiratory disorders\nMon 10/5   Cardiovascular disorders I\nMon 10/12  Cardiovascular disorders II\nMon 10/19  UNIT EXAM 2\nMon 10/26  Endocrine disorders\nFri 10/30  Care plan 2 due by 2359 (Canvas)\nMon 11/2   Renal disorders\nMon 11/9   GI disorders; ATI practice assessment due 11/11\nMon 11/16  UNIT EXAM 3\nMon 11/23  Case study presentations\nMon 11/30  Musculoskeletal & integumentary\nMon 12/7   Comprehensive review\nMon 12/14  COMPREHENSIVE FINAL EXAM, 8:00 AM\n\nClinical absences must be made up and may result in course failure.",
+  "gold": [
+    {
+      "title": "Dosage calculation competency",
+      "kind": "exam",
+      "date": "2026-08-31",
+      "courseCode": "NURS 310"
+    },
+    {
+      "title": "Unit Exam 1",
+      "kind": "exam",
+      "date": "2026-09-21",
+      "courseCode": "NURS 310"
+    },
+    {
+      "title": "Care plan 1",
+      "kind": "task",
+      "date": "2026-09-25",
+      "courseCode": "NURS 310"
+    },
+    {
+      "title": "Unit Exam 2",
+      "kind": "exam",
+      "date": "2026-10-19",
+      "courseCode": "NURS 310"
+    },
+    {
+      "title": "Care plan 2",
+      "kind": "task",
+      "date": "2026-10-30",
+      "courseCode": "NURS 310"
+    },
+    {
+      "title": "ATI practice assessment",
+      "kind": "task",
+      "date": "2026-11-11",
+      "courseCode": "NURS 310"
+    },
+    {
+      "title": "Unit Exam 3",
+      "kind": "exam",
+      "date": "2026-11-16",
+      "courseCode": "NURS 310"
+    },
+    {
+      "title": "Case study presentation",
+      "kind": "task",
+      "date": "2026-11-23",
+      "courseCode": "NURS 310",
+      "aliases": [
+        "Case study presentations"
+      ]
+    },
+    {
+      "title": "Comprehensive Final Exam",
+      "kind": "exam",
+      "date": "2026-12-14",
+      "courseCode": "NURS 310"
+    }
+  ],
+  "notes": "The dosage competency is an in-class test (exam); ATI practice assessment is an online due item (task)."
+}

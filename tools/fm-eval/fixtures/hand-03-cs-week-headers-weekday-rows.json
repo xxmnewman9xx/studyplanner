@@ -1,0 +1,113 @@
+{
+  "id": "hand-03-cs-week-headers-weekday-rows",
+  "name": "CS 161 'Week N (Mon–Fri)' headers with weekday-only rows",
+  "source": "handwritten",
+  "locale": "en-US",
+  "now": "2026-08-20",
+  "text": "CS 161 — Data Structures and Algorithms\nFall 2026 · Section 02 · MWF 1:30–2:20 PM · Gates B01\nInstructor: Prof. Raj Menon (rmenon@univ.edu)\nTAs: Priya S., Tom W. — sections Thursday 4:00 PM\n\nGrading\n  Programming assignments (6) .......... 36%\n  Weekly quizzes (Fridays, lowest dropped) .......... 10%\n  Midterm ......................... 20%\n  Final ........................... 30%\n  Participation ................... 4%\n\nProgramming assignments are due at 11:59 PM on the day listed. Five late days total.\n\nSchedule\nWeek 1 (Aug 24–28)\n  Mon: Course overview, asymptotics\n  Wed: Arrays and linked lists\n  Fri: Stacks and queues; PA1 released\nWeek 2 (Aug 31–Sep 4)\n  Mon: Amortized analysis\n  Wed: Hashing I\n  Fri: Hashing II — Quiz 1\nWeek 3 (Sep 7–11)\n  Mon: Labor Day, no class\n  Wed: Trees and BSTs; PA1 due\n  Fri: Balanced trees\nWeek 4 (Sep 14–18)\n  Mon: Heaps\n  Wed: Priority queues\n  Fri: Heapsort — Quiz 2\nWeek 5 (Sep 21–25)\n  Mon: Graph representations\n  Wed: BFS/DFS; PA2 due\n  Fri: Topological sort — Quiz 3\nWeek 6 (Sep 28–Oct 2)\n  Mon: Shortest paths\n  Wed: Dijkstra\n  Fri: Review\nWeek 7 (Oct 5–9)\n  Mon: MIDTERM (in class)\n  Wed: Minimum spanning trees\n  Fri: Union-find; PA3 due\nWeek 8 (Oct 12–16)\n  Mon: Greedy algorithms\n  Wed: Divide and conquer\n  Fri: Master theorem — Quiz 4\nWeek 9 (Oct 19–23)\n  Mon: Dynamic programming I\n  Wed: Dynamic programming II; PA4 due\n  Fri: DP on graphs\nWeek 10 (Oct 26–30)\n  Mon: String algorithms\n  Wed: Tries\n  Fri: Quiz 5\nWeek 11 (Nov 2–6)\n  Mon: Network flow\n  Wed: Matching; PA5 due\n  Fri: NP-completeness intro\nWeek 12 (Nov 9–13)\n  Mon: Reductions\n  Wed: Approximation\n  Fri: Randomized algorithms — Quiz 6\nWeek 13 (Nov 16–20)\n  Mon: Advanced topics\n  Wed: PA6 due\n  Fri: Review\nFinal exam: Monday, December 14, 1:30–4:30 PM",
+  "gold": [
+    {
+      "title": "Quiz 1",
+      "kind": "exam",
+      "date": "2026-09-04",
+      "courseCode": "CS 161"
+    },
+    {
+      "title": "PA1",
+      "kind": "task",
+      "date": "2026-09-09",
+      "courseCode": "CS 161",
+      "aliases": [
+        "Programming assignment 1"
+      ]
+    },
+    {
+      "title": "Quiz 2",
+      "kind": "exam",
+      "date": "2026-09-18",
+      "courseCode": "CS 161"
+    },
+    {
+      "title": "PA2",
+      "kind": "task",
+      "date": "2026-09-23",
+      "courseCode": "CS 161",
+      "aliases": [
+        "Programming assignment 2"
+      ]
+    },
+    {
+      "title": "Quiz 3",
+      "kind": "exam",
+      "date": "2026-09-25",
+      "courseCode": "CS 161"
+    },
+    {
+      "title": "Midterm",
+      "kind": "exam",
+      "date": "2026-10-05",
+      "courseCode": "CS 161"
+    },
+    {
+      "title": "PA3",
+      "kind": "task",
+      "date": "2026-10-09",
+      "courseCode": "CS 161",
+      "aliases": [
+        "Programming assignment 3"
+      ]
+    },
+    {
+      "title": "Quiz 4",
+      "kind": "exam",
+      "date": "2026-10-16",
+      "courseCode": "CS 161"
+    },
+    {
+      "title": "PA4",
+      "kind": "task",
+      "date": "2026-10-21",
+      "courseCode": "CS 161",
+      "aliases": [
+        "Programming assignment 4"
+      ]
+    },
+    {
+      "title": "Quiz 5",
+      "kind": "exam",
+      "date": "2026-10-30",
+      "courseCode": "CS 161"
+    },
+    {
+      "title": "PA5",
+      "kind": "task",
+      "date": "2026-11-04",
+      "courseCode": "CS 161",
+      "aliases": [
+        "Programming assignment 5"
+      ]
+    },
+    {
+      "title": "Quiz 6",
+      "kind": "exam",
+      "date": "2026-11-13",
+      "courseCode": "CS 161"
+    },
+    {
+      "title": "PA6",
+      "kind": "task",
+      "date": "2026-11-18",
+      "courseCode": "CS 161",
+      "aliases": [
+        "Programming assignment 6"
+      ]
+    },
+    {
+      "title": "Final exam",
+      "kind": "exam",
+      "date": "2026-12-14",
+      "courseCode": "CS 161"
+    }
+  ],
+  "notes": "Weekday-only rows resolve against the week header range (Mon = first day)."
+}

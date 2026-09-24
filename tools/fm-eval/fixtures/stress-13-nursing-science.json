@@ -1,0 +1,28 @@
+{
+  "id": "stress-13-nursing-science",
+  "name": "Nursing science syllabus",
+  "source": "scripts/check-syllabus-stress.ts",
+  "locale": "en-US",
+  "now": "2026-08-20",
+  "text": "NURS 240 Clinical Foundations\nClinical checkoff on September 18\nLab Practical on September 25\nQuiz 2 on October 2",
+  "gold": [
+    {
+      "title": "Clinical checkoff",
+      "kind": "task",
+      "date": "2026-09-18",
+      "courseCode": "NURS 240"
+    },
+    {
+      "title": "Lab Practical",
+      "kind": "exam",
+      "date": "2026-09-25",
+      "courseCode": "NURS 240"
+    },
+    {
+      "title": "Quiz 2",
+      "kind": "exam",
+      "date": "2026-10-02",
+      "courseCode": "NURS 240"
+    }
+  ]
+}

@@ -1,0 +1,56 @@
+{
+  "id": "hand-04-engr-european-dates",
+  "name": "ENGR 150 module handbook with dd.mm dates",
+  "source": "handwritten",
+  "locale": "en-GB",
+  "now": "2026-08-20",
+  "text": "ENGR 150 Engineering Mechanics — Module Handbook, Autumn Term 2026\nModule leader: Dr. Katrin Vogel · Lectures Mon 10:00 and Thu 14:00, Room E1.12\nTutorials: Wednesdays 09:00, Lab 2.04\n\n1. Aims\nThis module introduces statics and dynamics of rigid bodies with applications to\nstructures and machines. Students completing it can model and analyse loads.\n\n2. Assessment\nAssessment component        Weighting   Deadline\nCoursework 1 (statics)      10%         02.10.2026\nCoursework 2 (trusses)      10%         23.10.2026\nLab report: friction        15%         06.11.2026\nClass test                  15%         12.11.2026\nCoursework 3 (dynamics)     10%         27.11.2026\nFinal examination           40%         January exam period (date TBC)\n\nAll coursework is submitted online by 16:00 on the deadline date.\n\n3. Teaching schedule\nWk  Date        Topic\n1   28.09.      Forces, vectors, equilibrium\n2   05.10.      Moments and couples\n3   12.10.      Free-body diagrams\n4   19.10.      Trusses: method of joints\n5   26.10.      Trusses: method of sections\n6   02.11.      Friction (lab week)\n7   09.11.      Centroids — class test Thursday 12.11.\n8   16.11.      Kinematics of particles\n9   23.11.      Kinetics: Newton's laws\n10  30.11.      Work and energy\n11  07.12.      Impulse and momentum; revision\n\n4. Key dates\n- Coursework 1 hand-in: 2 October 2026\n- Coursework 2 hand-in: 23 October 2026\n- Friction lab report hand-in: 6 November 2026\n- Class test: 12 November 2026 (in the Thursday lecture)\n- Coursework 3 hand-in: 27 November 2026\n- Revision lecture: 10 December 2026\n\n5. Academic integrity\nCollusion and plagiarism are treated under the university misconduct regulations.",
+  "gold": [
+    {
+      "title": "Coursework 1",
+      "kind": "task",
+      "date": "2026-10-02",
+      "courseCode": "ENGR 150",
+      "aliases": [
+        "Coursework 1 (statics)",
+        "Coursework 1 hand-in"
+      ]
+    },
+    {
+      "title": "Coursework 2",
+      "kind": "task",
+      "date": "2026-10-23",
+      "courseCode": "ENGR 150",
+      "aliases": [
+        "Coursework 2 (trusses)",
+        "Coursework 2 hand-in"
+      ]
+    },
+    {
+      "title": "Lab report: friction",
+      "kind": "task",
+      "date": "2026-11-06",
+      "courseCode": "ENGR 150",
+      "aliases": [
+        "Friction lab report"
+      ]
+    },
+    {
+      "title": "Class test",
+      "kind": "exam",
+      "date": "2026-11-12",
+      "courseCode": "ENGR 150"
+    },
+    {
+      "title": "Coursework 3",
+      "kind": "task",
+      "date": "2026-11-27",
+      "courseCode": "ENGR 150",
+      "aliases": [
+        "Coursework 3 (dynamics)",
+        "Coursework 3 hand-in"
+      ]
+    }
+  ],
+  "notes": "Final examination date is TBC and excluded; the revision lecture is not a deliverable."
+}

@@ -1,0 +1,41 @@
+{
+  "id": "hand-11-mktg-prose",
+  "name": "MKTG 310 prose-only deadlines",
+  "source": "handwritten",
+  "locale": "en-US",
+  "now": "2026-08-20",
+  "text": "MKTG 310 — Consumer Behavior\nFall 2026, Tuesdays and Thursdays 2:00–3:15 PM, Business Hall 220\nProfessor Elena Marsh · emarsh@school.edu · Office hours by appointment\n\nWelcome! This course explores why people buy what they buy. We will draw on\npsychology, sociology, and economics to understand how consumers search for,\nevaluate, purchase, and dispose of products and services.\n\nHow you will be evaluated\nYour grade is built from four components. Two individual application papers are\nworth 15% each. A team brand audit is worth 30%, split between a written report\nand a final presentation. The midterm exam counts for 20%, and the remaining 20%\ncomes from weekly reading reflections and in-class participation.\n\nKey deadlines\nThe first application paper is due by Friday, September 18, at 11:59 PM. We will\nhold the midterm exam in class on Thursday, October 15. Your team should submit a\none-page brand audit proposal by Tuesday, October 6. The second application paper\nis due by Friday, October 30. Brand audit presentations take place in class on\nDecember 1 and December 3; the written brand audit report is due Monday, December 7.\n\nReading reflections\nShort reflections (300 words) are due before class every Tuesday starting\nSeptember 1. They are graded complete/incomplete.\n\nCourse schedule overview\nWeeks 1-3: Consumer decision making\nWeeks 4-6: Perception, learning, and memory\nWeeks 7-8: Motivation, personality, and lifestyle\nWeeks 9-11: Attitudes and persuasion\nWeeks 12-14: Groups, culture, and digital consumers\nWeek 15: Brand audit presentations\n\nPolicies\nLate papers lose one letter grade per day. Laptops are welcome for note-taking.\nIf you need accommodations, please reach out during the first two weeks.",
+  "gold": [
+    {
+      "title": "First application paper",
+      "kind": "task",
+      "date": "2026-09-18",
+      "courseCode": "MKTG 310"
+    },
+    {
+      "title": "Brand audit proposal",
+      "kind": "task",
+      "date": "2026-10-06",
+      "courseCode": "MKTG 310"
+    },
+    {
+      "title": "Midterm exam",
+      "kind": "exam",
+      "date": "2026-10-15",
+      "courseCode": "MKTG 310"
+    },
+    {
+      "title": "Second application paper",
+      "kind": "task",
+      "date": "2026-10-30",
+      "courseCode": "MKTG 310"
+    },
+    {
+      "title": "Written brand audit report",
+      "kind": "task",
+      "date": "2026-12-07",
+      "courseCode": "MKTG 310"
+    }
+  ],
+  "notes": "Presentation slot (Dec 1 or Dec 3) is ambiguous and excluded; weekly reflections recur and are excluded."
+}

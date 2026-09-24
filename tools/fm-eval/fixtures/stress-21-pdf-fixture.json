@@ -1,0 +1,34 @@
+{
+  "id": "stress-21-pdf-fixture",
+  "name": "PDF extraction fixture (fakePdf)",
+  "source": "scripts/check-syllabus-stress.ts (fakePdf via extractPdfTextFromBase64)",
+  "locale": "en-US",
+  "now": "2026-08-20",
+  "text": "BIO 210 Human Biology Professor Rivera meets Monday Wednesday Friday in Science Hall 204 Required textbook chapters one through ten are listed in the weekly schedule Lab Report due September 21 Genetics Problem Set due September 28 Midterm Exam on October 15 Final Exam on December 12 in Science Hall 204 Office hours are Tuesday afternoon and students should ask questions early Late work loses ten percent each day after the deadline",
+  "gold": [
+    {
+      "title": "Lab Report",
+      "kind": "task",
+      "date": "2026-09-21",
+      "courseCode": "BIO 210"
+    },
+    {
+      "title": "Genetics Problem Set",
+      "kind": "task",
+      "date": "2026-09-28",
+      "courseCode": "BIO 210"
+    },
+    {
+      "title": "Midterm Exam",
+      "kind": "exam",
+      "date": "2026-10-15",
+      "courseCode": "BIO 210"
+    },
+    {
+      "title": "Final Exam",
+      "kind": "exam",
+      "date": "2026-12-12",
+      "courseCode": "BIO 210"
+    }
+  ]
+}

@@ -1,0 +1,83 @@
+{
+  "id": "hand-01-psyc-pipe-week-grid",
+  "name": "PSYC 101 pipe-table week grid",
+  "source": "handwritten",
+  "locale": "en-US",
+  "now": "2026-08-20",
+  "text": "PSYC 101: Introduction to Psychology — Fall 2026\nInstructor: Dr. Amara Okoye | Office: Kline Hall 312 | Office hours: Tue 1:00-3:00 PM\nLectures: MWF 9:00-9:50 AM, Kline Hall 110\n\nCOURSE DESCRIPTION\nThis course surveys the scientific study of behavior and mental processes, including\nresearch methods, biological bases of behavior, learning, memory, development, and\npsychological disorders.\n\nGRADING\n| Component | Weight |\n| Weekly quizzes (best 8 of 10) | 20% |\n| Research participation | 5% |\n| Response papers (3) | 15% |\n| Midterm exam 1 | 15% |\n| Midterm exam 2 | 15% |\n| Final exam | 30% |\n\nLate work loses 10% per day. Quizzes cannot be made up.\n\nWEEKLY SCHEDULE\n| Week | Dates | Topic | Reading | Due |\n| 1 | Aug 24 - Aug 28 | What is psychology? | Ch. 1 | — |\n| 2 | Aug 31 - Sep 4 | Research methods | Ch. 2 | Quiz 1 (Fri Sep 4) |\n| 3 | Sep 7 - Sep 11 | Biology of behavior | Ch. 3 | No class Mon Sep 7 (Labor Day) |\n| 4 | Sep 14 - Sep 18 | Sensation & perception | Ch. 4 | Response Paper 1 due Sep 16 |\n| 5 | Sep 21 - Sep 25 | Consciousness | Ch. 5 | Quiz 2 (Fri Sep 25) |\n| 6 | Sep 28 - Oct 2 | Learning | Ch. 6 | Midterm Exam 1 on Oct 2 |\n| 7 | Oct 5 - Oct 9 | Memory | Ch. 7 | Quiz 3 (Fri Oct 9) |\n| 8 | Oct 12 - Oct 16 | Thinking & language | Ch. 8 | Response Paper 2 due Oct 14 |\n| 9 | Oct 19 - Oct 23 | Intelligence | Ch. 9 | Quiz 4 (Fri Oct 23) |\n| 10 | Oct 26 - Oct 30 | Development | Ch. 10 | — |\n| 11 | Nov 2 - Nov 6 | Motivation & emotion | Ch. 11 | Midterm Exam 2 on Nov 6 |\n| 12 | Nov 9 - Nov 13 | Personality | Ch. 12 | Quiz 5 (Fri Nov 13) |\n| 13 | Nov 16 - Nov 20 | Social psychology | Ch. 13 | Response Paper 3 due Nov 18 |\n| 14 | Nov 23 - Nov 27 | Thanksgiving break | — | No class |\n| 15 | Nov 30 - Dec 4 | Disorders & treatment | Ch. 14-15 | Research participation credits due Dec 4 |\n\nFINAL EXAM: Wednesday, December 9, 8:00-10:00 AM, Kline Hall 110.\nAccessibility: contact the Disability Resource Center in the first two weeks.",
+  "gold": [
+    {
+      "title": "Quiz 1",
+      "kind": "exam",
+      "date": "2026-09-04",
+      "courseCode": "PSYC 101"
+    },
+    {
+      "title": "Response Paper 1",
+      "kind": "task",
+      "date": "2026-09-16",
+      "courseCode": "PSYC 101"
+    },
+    {
+      "title": "Quiz 2",
+      "kind": "exam",
+      "date": "2026-09-25",
+      "courseCode": "PSYC 101"
+    },
+    {
+      "title": "Midterm Exam 1",
+      "kind": "exam",
+      "date": "2026-10-02",
+      "courseCode": "PSYC 101"
+    },
+    {
+      "title": "Quiz 3",
+      "kind": "exam",
+      "date": "2026-10-09",
+      "courseCode": "PSYC 101"
+    },
+    {
+      "title": "Response Paper 2",
+      "kind": "task",
+      "date": "2026-10-14",
+      "courseCode": "PSYC 101"
+    },
+    {
+      "title": "Quiz 4",
+      "kind": "exam",
+      "date": "2026-10-23",
+      "courseCode": "PSYC 101"
+    },
+    {
+      "title": "Midterm Exam 2",
+      "kind": "exam",
+      "date": "2026-11-06",
+      "courseCode": "PSYC 101"
+    },
+    {
+      "title": "Quiz 5",
+      "kind": "exam",
+      "date": "2026-11-13",
+      "courseCode": "PSYC 101"
+    },
+    {
+      "title": "Response Paper 3",
+      "kind": "task",
+      "date": "2026-11-18",
+      "courseCode": "PSYC 101"
+    },
+    {
+      "title": "Research participation credits",
+      "kind": "task",
+      "date": "2026-12-04",
+      "courseCode": "PSYC 101"
+    },
+    {
+      "title": "Final Exam",
+      "kind": "exam",
+      "date": "2026-12-09",
+      "courseCode": "PSYC 101"
+    }
+  ],
+  "notes": "Week date ranges are lecture weeks, not deliverables."
+}

@@ -1,0 +1,86 @@
+{
+  "id": "hand-02-econ-ocr-columns",
+  "name": "ECON 202 OCR tab/space columns",
+  "source": "handwritten",
+  "locale": "en-US",
+  "now": "2026-08-20",
+  "text": "ECON 202  INTERMEDIATE MACROECONOMICS          Fall 2026\nProf. L. Hartmann        Tue/Thu 11:00-12:15     Rm 204 Baker Hall\nEmail: hartmann@univ.edu     Office hrs Wed 2-4pm\n\nCourse Objectives\nStudents will analyze growth models, business cycles, monetary and fiscal policy,\nand open-economy macroeconomics using formal models and data.\n\nAssessment\nProblem Sets (5)\t\t\t25%\nData Project\t\t\t\t15%\nMidterm\t\t\t\t\t25%\nFinal Exam\t\t\t\t35%\n\nTentative Schedule\nDate\t\tTopic\t\t\t\t\tAssignment\n8/25\t\tIntro; national accounts\n8/27\t\tMeasuring GDP & inflation\t\tRead Ch 2\n9/1\t\tSolow growth model I\n9/3\t\tSolow growth model II\t\t\tPS 1 due\n9/8        Endogenous growth\n9/10       Labor markets\n9/15       Unemployment                       PS 2 due\n9/17       Money & inflation\n9/22       IS-LM I\n9/24       IS-LM II                           PS 3 due\n9/29       Review\n10/1       MIDTERM EXAM (in class)\n10/6\t\tAD-AS model\n10/8\t\tPhillips curve\n10/13\t\tFall break - no class\n10/15\t\tMonetary policy rules\t\t\tPS 4 due\n10/20      Fiscal policy & debt\n10/22      Open economy I                     Data project proposal due\n10/27      Open economy II\n10/29      Exchange rates\n11/3       Financial crises                   PS 5 due\n11/5       Consumption\n11/10      Investment\n11/12      Data project presentations\n11/17      Data project presentations         Data project report due\n11/19      Review\n11/24      Thanksgiving - no class\n12/1       Current topics\n12/3       Final review\nFinal Exam: Thursday 12/10 3:30-5:30 PM",
+  "gold": [
+    {
+      "title": "Read Ch 2",
+      "kind": "task",
+      "date": "2026-08-27",
+      "courseCode": "ECON 202"
+    },
+    {
+      "title": "PS 1",
+      "kind": "task",
+      "date": "2026-09-03",
+      "courseCode": "ECON 202",
+      "aliases": [
+        "Problem Set 1"
+      ]
+    },
+    {
+      "title": "PS 2",
+      "kind": "task",
+      "date": "2026-09-15",
+      "courseCode": "ECON 202",
+      "aliases": [
+        "Problem Set 2"
+      ]
+    },
+    {
+      "title": "PS 3",
+      "kind": "task",
+      "date": "2026-09-24",
+      "courseCode": "ECON 202",
+      "aliases": [
+        "Problem Set 3"
+      ]
+    },
+    {
+      "title": "Midterm Exam",
+      "kind": "exam",
+      "date": "2026-10-01",
+      "courseCode": "ECON 202"
+    },
+    {
+      "title": "PS 4",
+      "kind": "task",
+      "date": "2026-10-15",
+      "courseCode": "ECON 202",
+      "aliases": [
+        "Problem Set 4"
+      ]
+    },
+    {
+      "title": "Data project proposal",
+      "kind": "task",
+      "date": "2026-10-22",
+      "courseCode": "ECON 202"
+    },
+    {
+      "title": "PS 5",
+      "kind": "task",
+      "date": "2026-11-03",
+      "courseCode": "ECON 202",
+      "aliases": [
+        "Problem Set 5"
+      ]
+    },
+    {
+      "title": "Data project report",
+      "kind": "task",
+      "date": "2026-11-17",
+      "courseCode": "ECON 202"
+    },
+    {
+      "title": "Final Exam",
+      "kind": "exam",
+      "date": "2026-12-10",
+      "courseCode": "ECON 202"
+    }
+  ],
+  "notes": "Presentation days (11/12, 11/17) are excluded: the student's own slot is not stated."
+}

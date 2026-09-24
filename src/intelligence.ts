@@ -22,6 +22,7 @@ import {
   StudyRecommendation,
   StudyBlock,
   TaskItem,
+  UserPrefs,
   WidgetKey,
 } from "./types";
 import { COLORS, formatDue, minutesLabel } from "./seed";
@@ -271,9 +272,15 @@ function blockFromSlot(params: {
   } satisfies StudyBlock;
 }
 
+/** Daily study-minute cap for the student's persona. Shared by the schedule plan and the Crunch Forecast. */
+export function dailyCapFor(prefs: Pick<UserPrefs, "studyPersonality" | "workloadStyle">) {
+  const persona = `${prefs.studyPersonality} ${prefs.workloadStyle}`.toLowerCase();
+  return persona.includes("heavy") ? 210 : persona.includes("nudge") || persona.includes("adhd") ? 110 : 150;
+}
+
 export function buildSchedulePlan(data: AppData, now = new Date()): SchedulePlan {
   const persona = `${data.prefs.studyPersonality} ${data.prefs.workloadStyle}`.toLowerCase();
-  const dailyCap = persona.includes("heavy") ? 210 : persona.includes("nudge") || persona.includes("adhd") ? 110 : 150;
+  const dailyCap = dailyCapFor(data.prefs);
   const dailyLoad: Record<string, number> = {};
   const blocks: StudyBlock[] = [];
   const rationale: string[] = [];
@@ -1129,13 +1136,13 @@ export type NaturalLanguageTaskResult =
   | { ok: true; task: TaskItem }
   | { ok: false; issues: NaturalLanguageTaskIssue[] };
 
-type CaptureClassMatch = {
+export type CaptureClassMatch = {
   klass: ClassItem;
   alias: string;
   priority: number;
 };
 
-type CaptureDateResult =
+export type CaptureDateResult =
   | { ok: true; dueDate: string; dueOffset: number }
   | { ok: false; issue: "date" | "date-invalid" | "date-ambiguous" };
 
@@ -1167,7 +1174,7 @@ function captureClassAliases(klass: ClassItem) {
   return aliases;
 }
 
-function findCaptureClassMatches(input: string, data: AppData): CaptureClassMatch[] {
+export function findCaptureClassMatches(input: string, data: AppData): CaptureClassMatch[] {
   const normalizedInput = ` ${normalizeCapturePhrase(input)} `;
   return data.classes
     .filter((klass) => !klass.archivedAt)
@@ -1180,7 +1187,7 @@ function findCaptureClassMatches(input: string, data: AppData): CaptureClassMatc
     .filter((match): match is CaptureClassMatch => Boolean(match));
 }
 
-function parseCaptureDate(input: string, now = new Date()): CaptureDateResult {
+export function parseCaptureDate(input: string, now = new Date()): CaptureDateResult {
   const relativeDates = [
     { phrase: "today", offset: 0, pattern: /\btoday\b/i },
     { phrase: "tomorrow", offset: 1, pattern: /\btomorrow\b/i },

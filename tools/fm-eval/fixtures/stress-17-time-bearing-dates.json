@@ -1,0 +1,21 @@
+{
+  "id": "stress-17-time-bearing-dates",
+  "name": "Time-bearing dates",
+  "source": "scripts/check-syllabus-stress.ts",
+  "locale": "en-US",
+  "now": "2026-08-20",
+  "text": "Essay 2 due Friday 11:59 PM\nFinance Case due September 14 5:00 PM",
+  "gold": [
+    {
+      "title": "Essay 2",
+      "kind": "task",
+      "date": "2026-08-21"
+    },
+    {
+      "title": "Finance Case",
+      "kind": "task",
+      "date": "2026-09-14"
+    }
+  ],
+  "notes": "'Friday' resolves to the next Friday after now (Thu 2026-08-20)."
+}
