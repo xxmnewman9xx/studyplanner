@@ -4924,22 +4924,22 @@ function contrastSafeLightForeground(color: string) {
   return `#${[red, green, blue].map((value) => value.toString(16).padStart(2, "0")).join("")}`;
 }
 
-function palette(theme: ThemeId, accentOverride?: string) {
+function palette(theme: ThemeId, _accentOverride?: string) {
+  // 2.2 minimalist system: white/black base, graphite text, one ink accent.
+  // Color is reserved for feedback (done, busy, crunch, info) via COLORS.
   const dark = ["dark", "neon", "athlete"].includes(theme);
-  const accentSource = accentOverride || THEMES.find((t) => t.id === theme)?.swatches[1] || COLORS.blue;
-  const accent = dark ? accentSource : contrastSafeLightForeground(accentSource);
   return {
     dark,
-    bg: dark ? "#050507" : "#EFEFF4",
-    surface: dark ? "#1A1A1E" : "#FFFFFF",
-    surface2: dark ? "#232329" : "#F6F6FA",
-    surface3: dark ? "#2C2C33" : "#ECECF2",
-    hairline: dark ? "rgba(255,255,255,0.10)" : "rgba(60,60,67,0.12)",
-    label: dark ? "#FFFFFF" : "#0A0A0D",
-    label2: dark ? "rgba(235,235,245,0.72)" : "#515158",
-    label3: dark ? "rgba(235,235,245,0.52)" : "#6E6E76",
-    accent,
-    accent2: accentOverride || THEMES.find((t) => t.id === theme)?.swatches[0] || COLORS.purple,
+    bg: dark ? "#000000" : "#FFFFFF",
+    surface: dark ? "#111113" : "#FFFFFF",
+    surface2: dark ? "#1C1C1F" : "#F5F5F5",
+    surface3: dark ? "#2A2A2E" : "#EBEBEB",
+    hairline: dark ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.09)",
+    label: dark ? "#FFFFFF" : "#0A0A0A",
+    label2: dark ? "rgba(255,255,255,0.72)" : "#555558",
+    label3: dark ? "rgba(255,255,255,0.52)" : "#6E6E73",
+    accent: dark ? "#FFFFFF" : "#0A0A0A",
+    accent2: dark ? "#FFFFFF" : "#0A0A0A",
   };
 }
 
@@ -6636,11 +6636,11 @@ export default function App() {
 
   if (!data && loadError) {
     return (
-      <View style={{ flex: 1, backgroundColor: "#F5F5F7", alignItems: "center", justifyContent: "center", padding: 28 }}>
-        <View style={{ width: 58, height: 58, borderRadius: 18, backgroundColor: "#111114", alignItems: "center", justifyContent: "center" }}><AlertTriangle color="#FFFFFF" size={27} /></View>
-        <Text selectable accessibilityRole="header" style={{ color: "#111114", fontSize: 26, lineHeight: 30, fontWeight: "900", textAlign: "center", marginTop: 20 }}>{textFor("storage.safe_title", "Your planner is still safe")}</Text>
+      <View style={{ flex: 1, backgroundColor: "#FFFFFF", alignItems: "center", justifyContent: "center", padding: 28 }}>
+        <View style={{ width: 58, height: 58, borderRadius: 18, backgroundColor: "#0A0A0A", alignItems: "center", justifyContent: "center" }}><AlertTriangle color="#FFFFFF" size={27} /></View>
+        <Text selectable accessibilityRole="header" style={{ color: "#0A0A0A", fontSize: 26, lineHeight: 30, fontWeight: "900", textAlign: "center", marginTop: 20 }}>{textFor("storage.safe_title", "Your planner is still safe")}</Text>
         <Text selectable accessibilityRole="alert" style={{ color: "#5C5C64", fontSize: 15, lineHeight: 21, textAlign: "center", marginTop: 9 }}>{loadError}</Text>
-        <Pressable accessibilityRole="button" accessibilityLabel={textFor("common.try_again", "Try again")} onPress={() => setLoadAttempt((attempt) => attempt + 1)} style={{ minHeight: 52, alignSelf: "stretch", borderRadius: 999, backgroundColor: "#111114", alignItems: "center", justifyContent: "center", marginTop: 22 }}>
+        <Pressable accessibilityRole="button" accessibilityLabel={textFor("common.try_again", "Try again")} onPress={() => setLoadAttempt((attempt) => attempt + 1)} style={{ minHeight: 52, alignSelf: "stretch", borderRadius: 999, backgroundColor: "#0A0A0A", alignItems: "center", justifyContent: "center", marginTop: 22 }}>
           <Text style={{ color: "#FFFFFF", fontSize: 16, fontWeight: "900" }}>{textFor("common.try_again", "Try again")}</Text>
         </Pressable>
       </View>
@@ -6935,18 +6935,18 @@ function SemesterKickoff({ data, nav, theme, currentImport, accessState }: Scree
       <Screen theme={theme} bottom={44}>
         <BackHeader embedded nav={nav} theme={theme} label={copy.title} />
         <View style={{ paddingHorizontal: 16, gap: 14 }}>
-          <View style={{ borderRadius: 28, padding: 22, backgroundColor: theme.dark ? "#1C1730" : "#191326", overflow: "hidden" }}>
+          <View style={{ borderRadius: 28, padding: 22, backgroundColor: theme.dark ? "#0A0A0A" : "#0A0A0A", overflow: "hidden" }}>
             <View style={{ alignSelf: "flex-start", borderRadius: 999, paddingHorizontal: 11, paddingVertical: 7, backgroundColor: "rgba(255,255,255,0.12)" }}>
               <Text selectable style={{ color: "#FFFFFF", fontSize: 11, fontWeight: "900", letterSpacing: 0.7 }}>{copy.kicker}</Text>
             </View>
             <Text selectable accessibilityRole="header" style={{ color: "#FFFFFF", fontSize: 32, lineHeight: 35, fontWeight: "900", marginTop: 18 }}>{copy.title}</Text>
             <Text selectable style={{ color: "rgba(255,255,255,0.78)", fontSize: 16, lineHeight: 23, marginTop: 10 }}>{copy.body}</Text>
             <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12, marginTop: 20 }}>
-              <Text selectable style={{ color: "#D9CBFF", fontWeight: "900", flex: 1 }}>{phaseLabel}</Text>
+              <Text selectable style={{ color: "rgba(255,255,255,0.72)", fontWeight: "900", flex: 1 }}>{phaseLabel}</Text>
               <Text selectable accessibilityLiveRegion="polite" style={{ color: "#FFFFFF", fontWeight: "900" }}>{progressLabel}</Text>
             </View>
             <View style={{ height: 8, borderRadius: 999, backgroundColor: "rgba(255,255,255,0.14)", overflow: "hidden", marginTop: 10 }}>
-              <View style={{ width: `${(progress.completedCount / progress.totalCount) * 100}%`, height: "100%", borderRadius: 999, backgroundColor: "#B89CFF" }} />
+              <View style={{ width: `${(progress.completedCount / progress.totalCount) * 100}%`, height: "100%", borderRadius: 999, backgroundColor: "#FFFFFF" }} />
             </View>
           </View>
 
@@ -7024,7 +7024,7 @@ function BackHeader({ label, nav, theme, action, embedded = false }: { label?: s
 }
 
 function Card({ children, theme, style }: { children: React.ReactNode; theme: ReturnType<typeof palette>; style?: StyleProp<ViewStyle> }) {
-  return <View style={[{ backgroundColor: theme.surface, borderRadius: 14, borderWidth: 1, borderColor: theme.hairline, boxShadow: theme.dark ? "0 8px 20px rgba(0,0,0,0.30)" : "0 8px 18px rgba(20,20,40,0.08)" }, style]}>{children}</View>;
+  return <View style={[{ backgroundColor: theme.surface, borderRadius: 14, borderWidth: 1, borderColor: theme.hairline }, style]}>{children}</View>;
 }
 
 function RecoveryScreen({ title, body, action, nav, theme }: { title: string; body: string; action?: string; nav: ScreenProps["nav"]; theme: ReturnType<typeof palette> }) {
@@ -7191,8 +7191,8 @@ function Button({ label, theme, onPress, secondary, icon }: { label: string; the
   const disabled = !onPress;
   return (
     <Pressable accessibilityRole="button" accessibilityState={{ disabled }} disabled={disabled} hitSlop={6} onPress={() => { if (!disabled) { tap(); onPress?.(); } }} style={{ minHeight: 51, borderRadius: 999, backgroundColor: disabled ? theme.surface3 : secondary ? theme.surface3 : theme.accent, opacity: disabled ? 0.54 : 1, alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 8, marginTop: 9, paddingHorizontal: 18 }}>
-      {icon ? <Icon name={icon} color={secondary || disabled ? theme.label : "#fff"} size={18} /> : null}
-      <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.78} style={{ color: secondary || disabled ? theme.label : "#fff", fontSize: 16, fontWeight: "900", flexShrink: 1 }}>{label}</Text>
+      {icon ? <Icon name={icon} color={secondary || disabled ? theme.label : theme.dark ? "#000" : "#fff"} size={18} /> : null}
+      <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.78} style={{ color: secondary || disabled ? theme.label : theme.dark ? "#000" : "#fff", fontSize: 16, fontWeight: "900", flexShrink: 1 }}>{label}</Text>
     </Pressable>
   );
 }
@@ -7265,7 +7265,7 @@ function MiniNextMove({ theme }: { theme: ReturnType<typeof palette> }) {
 
 function MiniWidgetPreview({ theme, accent = COLORS.blue }: { theme: ReturnType<typeof palette>; accent?: string }) {
   return (
-    <View style={{ width: "48%", borderRadius: 18, padding: 13, backgroundColor: "#111114" }}>
+    <View style={{ width: "48%", borderRadius: 18, padding: 13, backgroundColor: "#0A0A0A" }}>
       <Text selectable style={{ color: "rgba(255,255,255,0.56)", fontSize: 10, fontWeight: "900" }}>{textFor("mini.widget", "WIDGET")}</Text>
       <Text selectable style={{ color: "#fff", fontSize: 16, fontWeight: "900", marginTop: 8 }}>{textFor("widgets.sub_locked", "Locked preview")}</Text>
       <Text selectable numberOfLines={1} style={{ color: "rgba(255,255,255,0.68)", fontSize: 12, marginTop: 4 }}>{textFor("mini.unlock_after", "Unlock after purchase")}</Text>
@@ -7364,7 +7364,7 @@ function Onboarding({ data, mutate, nav, theme, params, currentImport }: ScreenP
     ? textFor("onboarding.build_title_personal", "Build {name}'s semester.", { name: firstName })
     : textFor("onboarding.build_title", "Build your semester.");
   const scanOptions = ["Scan with camera", "Upload PDF", "Paste syllabus", "Add manually"];
-  const onboardingAccent = "#111114";
+  const onboardingAccent = "#0A0A0A";
   const onboardingTheme = { ...theme, accent: onboardingAccent };
   const prioritiesComplete = Boolean(profile.studentType && profile.mainGoal);
   useEffect(() => {
@@ -7460,7 +7460,7 @@ function Onboarding({ data, mutate, nav, theme, params, currentImport }: ScreenP
     </View>
   );
   return (
-    <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={{ flex: 1, backgroundColor: "#F5F5F7" }}>
+    <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={{ flex: 1, backgroundColor: "#FFFFFF" }}>
       <View style={{ paddingTop: 58, paddingHorizontal: 24, flexDirection: "row", alignItems: "center", gap: 8 }}>
         {index ? <Pressable accessibilityRole="button" accessibilityLabel={textFor("common.back", "Back")} hitSlop={11} onPress={() => setIndex(index - 1)} style={{ width: 44, height: 44, alignItems: "center", justifyContent: "center" }}><ChevronLeft color={theme.label2} size={22} /></Pressable> : <View style={{ width: 44 }} />}
         <View style={{ flex: 1, flexDirection: "row", gap: 5 }}>{steps.map((_, i) => <View key={i} style={{ flex: 1, height: 5, borderRadius: 99, backgroundColor: i <= index ? onboardingAccent : theme.surface3 }} />)}</View>
@@ -7505,7 +7505,7 @@ function Onboarding({ data, mutate, nav, theme, params, currentImport }: ScreenP
                   return (
                     <Pressable key={opt} accessibilityRole="radio" accessibilityLabel={`${optionText(opt)}. ${textFor(meta.hintKey, meta.hint)}`} accessibilityState={{ selected: on }} onPress={() => pick("scanIntent", opt)}>
                       <Card theme={theme} style={{ padding: 14, flexDirection: "row", alignItems: "center", gap: 13, borderColor: on ? onboardingAccent : theme.hairline, borderWidth: on ? 2 : 1, backgroundColor: on ? "#FFFFFF" : "rgba(255,255,255,0.78)" }}>
-                        <View style={{ width: 46, height: 46, borderRadius: 15, backgroundColor: on ? "#111114" : `${meta.color}1A`, alignItems: "center", justifyContent: "center" }}>
+                        <View style={{ width: 46, height: 46, borderRadius: 15, backgroundColor: on ? "#0A0A0A" : `${meta.color}1A`, alignItems: "center", justifyContent: "center" }}>
                           <Icon name={meta.icon} color={on ? "#FFFFFF" : meta.color} size={22} />
                         </View>
                         <View style={{ flex: 1 }}>
@@ -7518,7 +7518,7 @@ function Onboarding({ data, mutate, nav, theme, params, currentImport }: ScreenP
                   );
                 })}
               </View>
-              <Card theme={theme} style={{ padding: 14, marginBottom: 16, backgroundColor: "#111114" }}>
+              <Card theme={theme} style={{ padding: 14, marginBottom: 16, backgroundColor: "#0A0A0A" }}>
                 <View style={{ flexDirection: "row", alignItems: "center", gap: 10, marginBottom: 8 }}>
                   <View style={{ width: 40, height: 40, borderRadius: 14, backgroundColor: "rgba(255,255,255,0.12)", alignItems: "center", justifyContent: "center" }}>
                     <Icon name="sparkles" color="#FFFFFF" size={21} />
@@ -7558,12 +7558,12 @@ function ImportOptions({ data, mutate, nav, theme }: ScreenProps) {
     else nav.push("scan", { action: params?.action || "pdf" });
   };
   return (
-    <View style={{ flex: 1, backgroundColor: "#F5F5F7" }}>
+    <View style={{ flex: 1, backgroundColor: "#FFFFFF" }}>
       <ScrollView contentInsetAdjustmentBehavior="automatic" contentContainerStyle={{ paddingTop: 72, paddingHorizontal: 22, paddingBottom: 120 }}>
         <Pressable accessibilityRole="button" accessibilityLabel={textFor("common.back", "Back")} hitSlop={10} onPress={nav.back} style={{ width: 44, height: 44, borderRadius: 99, backgroundColor: theme.surface, alignItems: "center", justifyContent: "center", marginBottom: 18 }}><ChevronLeft color={theme.label} /></Pressable>
         <Text selectable style={{ color: theme.label, fontSize: 38, lineHeight: 41, fontWeight: "900" }}>{textFor("onboarding.build_title", "Build your semester.")}</Text>
         <Text selectable style={{ color: theme.label2, fontSize: 16, lineHeight: 22, marginTop: 8, marginBottom: 20 }}>{textFor("onboarding.free_first", "Start with one syllabus. See every deadline and your crunch weeks for free — nothing saves until you review it.")}</Text>
-        <Card theme={theme} style={{ padding: 17, backgroundColor: "#111114", marginBottom: 18 }}>
+        <Card theme={theme} style={{ padding: 17, backgroundColor: "#0A0A0A", marginBottom: 18 }}>
           <Text selectable style={{ color: "#fff", fontSize: 21, lineHeight: 25, fontWeight: "900" }}>{textFor("onboarding.free_scan_title", "Free: see your whole semester.")}</Text>
           <Text selectable style={{ color: "rgba(255,255,255,0.72)", lineHeight: 20, marginTop: 6 }}>{textFor("onboarding.free_scan_body", "Scan or add every class. StudyPlanner reads them on this iPhone, lists every deadline for review, and forecasts your red weeks. Unlock when you want the daily plan.")}</Text>
         </Card>
@@ -7631,7 +7631,7 @@ function LockedDashboard({ data, nav, theme, currentImport, pasteSharedPayload }
           />
         ) : null}
 
-        <View style={{ borderRadius: 28, padding: 20, backgroundColor: "#111114", overflow: "hidden" }}>
+        <View style={{ borderRadius: 28, padding: 20, backgroundColor: "#0A0A0A", overflow: "hidden" }}>
           <View style={{ width: 52, height: 52, borderRadius: 17, backgroundColor: "rgba(255,255,255,0.12)", alignItems: "center", justifyContent: "center", marginBottom: 16 }}>
             <Icon name="scan" color="#FFFFFF" size={26} />
           </View>
@@ -7653,8 +7653,8 @@ function LockedDashboard({ data, nav, theme, currentImport, pasteSharedPayload }
           </View>
           <View style={{ marginTop: 16 }}>
             <Pressable accessibilityRole="button" onPress={() => nav.push("scan", currentImport ? { append: "1" } : undefined)} style={{ minHeight: 51, borderRadius: 999, backgroundColor: "#FFFFFF", alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 8 }}>
-              <Icon name="camera" color="#111114" size={18} />
-              <Text style={{ color: "#111114", fontWeight: "900" }}>{currentImport ? textFor("locked.scan_another", "Scan another syllabus") : textFor("locked.scan_free", "Scan a syllabus free")}</Text>
+              <Icon name="camera" color="#0A0A0A" size={18} />
+              <Text style={{ color: "#0A0A0A", fontWeight: "900" }}>{currentImport ? textFor("locked.scan_another", "Scan another syllabus") : textFor("locked.scan_free", "Scan a syllabus free")}</Text>
             </Pressable>
             <Pressable accessibilityRole="button" onPress={() => nav.push("paste", currentImport ? { mode: "manual", append: "1" } : { mode: "manual" })} style={{ minHeight: 48, borderRadius: 999, borderWidth: 1, borderColor: "rgba(255,255,255,0.22)", alignItems: "center", justifyContent: "center", marginTop: 10 }}>
               <Text style={{ color: "#FFFFFF", fontWeight: "900" }}>{textFor("classes.add_manual", "Add class manually")}</Text>
@@ -7953,7 +7953,7 @@ function Paywall({ data, mutate, nav, theme, params, currentImport, setCurrentIm
             <UnlockForecastCTA theme={theme} t={aiText} locale={appLocale()} forecast={importForecast} onPress={() => nav.back()} />
           </View>
         ) : null}
-        <Card theme={theme} style={{ padding: 13, marginBottom: 12, backgroundColor: "#111114", display: importForecast ? "none" : "flex" }}>
+        <Card theme={theme} style={{ padding: 13, marginBottom: 12, backgroundColor: "#0A0A0A", display: importForecast ? "none" : "flex" }}>
           {currentImport ? (
             <View>
               <Text selectable style={{ color: "rgba(255,255,255,0.66)", fontSize: 12, fontWeight: "900", marginBottom: 10 }}>{textFor("paywall.ready_apply", "READY TO APPLY")}</Text>
@@ -8175,7 +8175,7 @@ function Today({ data, mutate, nav, theme, recordReviewTrigger, dailyBrief, open
         <Header title={todayTitle} sub={todayHeaderLabel()} theme={theme} right={<Pressable accessibilityRole="button" accessibilityLabel={textFor("tabs.profile", "Profile")} accessibilityHint={textFor("profile.accessibility_open_hint", "Open profile and app settings")} onPress={() => nav.tab("profile")}><View style={{ width: 44, height: 44, borderRadius: 99, backgroundColor: theme.accent, alignItems: "center", justifyContent: "center" }}><Text style={{ color: "#fff", fontWeight: "900", fontSize: 17 }}>{userInitial(data)}</Text></View></Pressable>} />
         <View style={{ paddingHorizontal: 16, gap: 16 }}>
           <SemesterHealthHero semester={semester} narrative={narrative} theme={theme} hasSemesterData={false} />
-          <Card theme={theme} style={{ padding: 18, backgroundColor: "#111114" }}>
+          <Card theme={theme} style={{ padding: 18, backgroundColor: "#0A0A0A" }}>
             <View style={{ width: 52, height: 52, borderRadius: 17, backgroundColor: "rgba(255,255,255,0.12)", alignItems: "center", justifyContent: "center", marginBottom: 14 }}>
               <Icon name="scan" color="#FFFFFF" size={25} />
             </View>
@@ -8840,7 +8840,7 @@ function ClassDetail({ data, mutate, nav, theme, params, openClassPack }: Screen
   return (
     <View style={{ flex: 1, backgroundColor: theme.bg }}>
       <ScrollView contentInsetAdjustmentBehavior="automatic" keyboardDismissMode="interactive" keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingBottom: 40 }}>
-        <View style={{ paddingTop: 58, paddingHorizontal: 20, paddingBottom: 22, backgroundColor: c.color }}>
+        <View style={{ paddingTop: 58, paddingHorizontal: 20, paddingBottom: 22, backgroundColor: theme.dark ? "#111113" : "#0A0A0A" }}>
           <Pressable accessibilityRole="button" accessibilityLabel={textFor("common.back", "Back")} accessibilityHint={textFor("accessibility.back_hint", "Return to the previous screen")} hitSlop={10} onPress={nav.back} style={{ width: 44, height: 44, borderRadius: 99, backgroundColor: "rgba(255,255,255,.24)", alignItems: "center", justifyContent: "center", marginBottom: 20 }}><ChevronLeft color="#fff" /></Pressable>
           <View style={{ flexDirection: "row", gap: 12, alignItems: "center" }}><View style={{ width: 54, height: 54, borderRadius: 16, backgroundColor: "rgba(255,255,255,.22)", alignItems: "center", justifyContent: "center" }}><Icon name={c.icon} color="#fff" size={28} /></View><View><Text selectable style={{ color: "#fff", fontSize: 29, fontWeight: "900" }}>{c.code}</Text><Text selectable style={{ color: "rgba(255,255,255,.9)", fontWeight: "800" }}>{c.name}</Text></View></View>
           <View style={{ flexDirection: "row", gap: 18, marginTop: 20 }}>{[{ l: textFor("class.forecast", "Forecast"), v: pulse.label }, { l: textFor("class.pulse", "Pulse"), v: pulse.score }, { l: textFor("class.due", "Due"), v: tasks.length }, { l: textFor("class.exams", "Exams"), v: exams.length }].map((s, index) => <View key={`class-stat-${index}`}><Text selectable style={{ color: "#fff", fontSize: 22, fontWeight: "900" }}>{s.v}</Text><Text selectable style={{ color: "rgba(255,255,255,.84)", fontSize: 12, fontWeight: "800" }}>{s.l}</Text></View>)}</View>
@@ -9118,7 +9118,7 @@ function TaskDetail({ data, mutate, nav, theme, params, recordReviewTrigger }: S
             </View>
             <Text selectable style={{ color: theme.label2, fontSize: 12, fontWeight: "900", marginBottom: 7 }}>{textFor("task.move_to_class", "Move to class")}</Text>
             <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8, marginBottom: 10 }}>{data.classes.filter((klass) => !klass.archivedAt).map((klass) => (
-              <Pressable key={klass.id} accessibilityRole="radio" accessibilityLabel={`${klass.code}. ${klass.name}`} accessibilityHint={textFor("task.accessibility_move_class_hint", "Move this assignment to the selected class")} accessibilityState={{ selected: draft.classId === klass.id }} onPress={() => setDraft((current) => ({ ...current, classId: klass.id }))} style={{ paddingHorizontal: 11, paddingVertical: 8, borderRadius: 999, backgroundColor: draft.classId === klass.id ? klass.color : theme.surface2 }}><Text style={{ color: draft.classId === klass.id ? "#fff" : theme.label, fontWeight: "900" }}>{klass.code}</Text></Pressable>
+              <Pressable key={klass.id} accessibilityRole="radio" accessibilityLabel={`${klass.code}. ${klass.name}`} accessibilityHint={textFor("task.accessibility_move_class_hint", "Move this assignment to the selected class")} accessibilityState={{ selected: draft.classId === klass.id }} onPress={() => setDraft((current) => ({ ...current, classId: klass.id }))} style={{ paddingHorizontal: 11, paddingVertical: 8, borderRadius: 999, backgroundColor: draft.classId === klass.id ? theme.accent : theme.surface2 }}><Text style={{ color: draft.classId === klass.id ? "#fff" : theme.label, fontWeight: "900" }}>{klass.code}</Text></Pressable>
             ))}</View>
             <FieldInput label={textFor("class.description", "Description")} value={draft.description} onChangeText={(description) => setDraft((current) => ({ ...current, description }))} theme={theme} multiline />
             <Button label={draft.dueDate.trim() ? textFor("task.save", "Save assignment") : textFor("task.save_awaiting", "Save as Awaiting Date")} theme={theme} icon="target" onPress={saveTask} />
@@ -9253,7 +9253,7 @@ function AssessmentDetail({ data, mutate, nav, theme, params }: ScreenProps) {
             </View>
             <Text selectable style={{ color: theme.label2, fontSize: 12, fontWeight: "900", marginBottom: 7 }}>{textFor("task.move_to_class", "Move to class")}</Text>
             <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8, marginBottom: 10 }}>{data.classes.filter((klass) => !klass.archivedAt).map((klass) => (
-              <Pressable key={klass.id} accessibilityRole="radio" accessibilityLabel={`${klass.code}. ${klass.name}`} accessibilityHint={textFor("assessment.accessibility_move_class_hint", "Move this assessment to the selected class")} accessibilityState={{ selected: draft.classId === klass.id }} onPress={() => setDraft((current) => ({ ...current, classId: klass.id }))} style={{ paddingHorizontal: 11, paddingVertical: 8, borderRadius: 999, backgroundColor: draft.classId === klass.id ? klass.color : theme.surface2 }}><Text style={{ color: draft.classId === klass.id ? "#fff" : theme.label, fontWeight: "900" }}>{klass.code}</Text></Pressable>
+              <Pressable key={klass.id} accessibilityRole="radio" accessibilityLabel={`${klass.code}. ${klass.name}`} accessibilityHint={textFor("assessment.accessibility_move_class_hint", "Move this assessment to the selected class")} accessibilityState={{ selected: draft.classId === klass.id }} onPress={() => setDraft((current) => ({ ...current, classId: klass.id }))} style={{ paddingHorizontal: 11, paddingVertical: 8, borderRadius: 999, backgroundColor: draft.classId === klass.id ? theme.accent : theme.surface2 }}><Text style={{ color: draft.classId === klass.id ? "#fff" : theme.label, fontWeight: "900" }}>{klass.code}</Text></Pressable>
             ))}</View>
             <FieldInput label={textFor("class.notes_label", "Notes")} value={draft.notes} onChangeText={(notes) => setDraft((current) => ({ ...current, notes }))} theme={theme} multiline />
             <Button label={textFor("assessment.save", "Save assessment")} theme={theme} icon="target" onPress={saveAssessment} />
@@ -9787,7 +9787,7 @@ function CameraScanner({ data, nav, theme, params, setCurrentImport, startSyllab
       <View style={{ flex: 1, backgroundColor: theme.bg }}>
         <BackHeader nav={nav} theme={theme} label={textFor("scan.camera", "Camera")} />
         <View style={{ padding: 18 }}>
-          <Card theme={theme} style={{ padding: 18, backgroundColor: "#111114" }}>
+          <Card theme={theme} style={{ padding: 18, backgroundColor: "#0A0A0A" }}>
             <View style={{ width: 56, height: 56, borderRadius: 18, backgroundColor: "rgba(255,255,255,0.12)", alignItems: "center", justifyContent: "center", marginBottom: 14 }}>
               <Camera color="#FFFFFF" size={27} />
             </View>
@@ -10239,7 +10239,7 @@ function PasteImport({ data, nav, theme, params, currentImport, setCurrentImport
       <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={{ flex: 1, backgroundColor: theme.bg }}>
         <BackHeader nav={nav} theme={theme} label={lockedTitle} />
         <ScrollView contentInsetAdjustmentBehavior="automatic" keyboardDismissMode="interactive" keyboardShouldPersistTaps="handled" contentContainerStyle={{ padding: 16, paddingBottom: 32 }}>
-          <Card theme={theme} style={{ padding: 18, marginBottom: 14, backgroundColor: "#111114" }}>
+          <Card theme={theme} style={{ padding: 18, marginBottom: 14, backgroundColor: "#0A0A0A" }}>
             <View style={{ width: 54, height: 54, borderRadius: 18, backgroundColor: "rgba(255,255,255,0.12)", alignItems: "center", justifyContent: "center", marginBottom: 14 }}>
               <Icon name={manualMode ? "plus" : "file"} color="#FFFFFF" size={25} />
             </View>
@@ -10272,7 +10272,7 @@ function PasteImport({ data, nav, theme, params, currentImport, setCurrentImport
       <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={{ flex: 1, backgroundColor: theme.bg }}>
         <BackHeader nav={nav} theme={theme} label={textFor("classes.add_manual", "Add class manually")} />
         <ScrollView style={{ flex: 1 }} contentInsetAdjustmentBehavior="automatic" keyboardDismissMode="interactive" keyboardShouldPersistTaps="handled" contentContainerStyle={{ padding: 16, paddingBottom: 24 }}>
-          <Card theme={theme} style={{ padding: 16, marginBottom: 14, backgroundColor: "#111114" }}>
+          <Card theme={theme} style={{ padding: 16, marginBottom: 14, backgroundColor: "#0A0A0A" }}>
             <Text selectable style={{ color: "rgba(255,255,255,0.62)", fontSize: 12, fontWeight: "900" }}>{textFor("onboarding.manual_kicker", "RELIABLE FALLBACK")}</Text>
             <Text selectable style={{ color: "#FFFFFF", fontSize: 25, lineHeight: 29, fontWeight: "900", marginTop: 7 }}>{textFor("onboarding.manual_title", "Start with one class. Add the rest later.")}</Text>
             <Text selectable style={{ color: "rgba(255,255,255,0.72)", lineHeight: 20, marginTop: 7 }}>{textFor("onboarding.manual_sub", "This creates a review preview just like scan or import, so nothing saves until you approve it.")}</Text>
@@ -10701,7 +10701,7 @@ function ReviewImport({ data, mutate, persistPlannerSnapshot, nav, theme, curren
                       <View>
 	                        <Text selectable style={{ color: theme.label2, fontSize: 12, fontWeight: "900", marginBottom: 7 }}>{textFor("tabs.classes", "Class")}</Text>
                         <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>{data.classes.filter((klass) => !klass.archivedAt).map((klass) => (
-                          <Pressable key={klass.id} accessibilityRole="button" accessibilityLabel={`Assign ${item.title} to ${klass.code}`} accessibilityState={{ selected: (payload.classId || item.classId) === klass.id }} onPress={() => updatePayload(item, { classId: klass.id })} style={{ paddingHorizontal: 10, paddingVertical: 7, borderRadius: 999, backgroundColor: (payload.classId || item.classId) === klass.id ? klass.color : theme.surface2 }}><Text style={{ color: (payload.classId || item.classId) === klass.id ? "#fff" : theme.label, fontWeight: "900" }}>{klass.code}</Text></Pressable>
+                          <Pressable key={klass.id} accessibilityRole="button" accessibilityLabel={`Assign ${item.title} to ${klass.code}`} accessibilityState={{ selected: (payload.classId || item.classId) === klass.id }} onPress={() => updatePayload(item, { classId: klass.id })} style={{ paddingHorizontal: 10, paddingVertical: 7, borderRadius: 999, backgroundColor: (payload.classId || item.classId) === klass.id ? theme.accent : theme.surface2 }}><Text style={{ color: (payload.classId || item.classId) === klass.id ? "#fff" : theme.label, fontWeight: "900" }}>{klass.code}</Text></Pressable>
                         ))}</View>
                       </View>
                     ) : null}
@@ -10711,7 +10711,7 @@ function ReviewImport({ data, mutate, persistPlannerSnapshot, nav, theme, curren
                   <View style={{ marginTop: 10 }}>
                     <Text selectable style={{ color: theme.label2, fontSize: 12, fontWeight: "900", marginBottom: 7 }}>{textFor("tabs.classes", "Class")}</Text>
                     <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>{data.classes.filter((klass) => !klass.archivedAt).map((klass) => (
-                      <Pressable key={klass.id} accessibilityRole="button" accessibilityLabel={`Assign ${item.title} to ${klass.code}`} accessibilityState={{ selected: (payload.classId || item.classId) === klass.id }} onPress={() => updatePayload(item, { classId: klass.id })} style={{ paddingHorizontal: 10, paddingVertical: 7, borderRadius: 999, backgroundColor: (payload.classId || item.classId) === klass.id ? klass.color : theme.surface2 }}><Text style={{ color: (payload.classId || item.classId) === klass.id ? "#fff" : theme.label, fontWeight: "900" }}>{klass.code}</Text></Pressable>
+                      <Pressable key={klass.id} accessibilityRole="button" accessibilityLabel={`Assign ${item.title} to ${klass.code}`} accessibilityState={{ selected: (payload.classId || item.classId) === klass.id }} onPress={() => updatePayload(item, { classId: klass.id })} style={{ paddingHorizontal: 10, paddingVertical: 7, borderRadius: 999, backgroundColor: (payload.classId || item.classId) === klass.id ? theme.accent : theme.surface2 }}><Text style={{ color: (payload.classId || item.classId) === klass.id ? "#fff" : theme.label, fontWeight: "900" }}>{klass.code}</Text></Pressable>
                     ))}</View>
                   </View>
                 ) : null}
@@ -10797,7 +10797,7 @@ function ApplySuccess({ data, nav, theme }: ScreenProps) {
                   <Text selectable style={{ color: theme.label, fontSize: 20, lineHeight: 24, fontWeight: "900", marginTop: 3 }}>{textFor("success.theme_title", "White system, class colors")}</Text>
                   <Text selectable style={{ color: theme.label2, lineHeight: 19, marginTop: 4 }}>{textFor("success.theme_body", "Dashboard, focus blocks, classes, and widgets keep black controls with automatic course colors for context.")}</Text>
                 </View>
-                <View style={{ width: 58, height: 58, borderRadius: 20, backgroundColor: "#111114", alignItems: "center", justifyContent: "center" }}>
+                <View style={{ width: 58, height: 58, borderRadius: 20, backgroundColor: "#0A0A0A", alignItems: "center", justifyContent: "center" }}>
                   <Icon name="sparkles" color={semesterTheme.foreground} size={25} />
                 </View>
               </View>
@@ -11129,7 +11129,7 @@ function Notes({ data, nav, theme }: ScreenProps) {
       <BackHeader embedded nav={nav} theme={theme} label={textFor("notes.title", "Notes")} />
       <Header title={textFor("notes.title", "Notes")} sub={textFor("notes.sub", "{score} preparedness · {count} notes", { score: preparedness, count: liveData.notes.length })} theme={theme} />
       <View style={{ paddingHorizontal: 16, gap: 14 }}>
-        <Card theme={theme} style={{ padding: 16, backgroundColor: theme.dark ? "#111114" : "#FFFFFF" }}>
+        <Card theme={theme} style={{ padding: 16, backgroundColor: theme.dark ? "#0A0A0A" : "#FFFFFF" }}>
           <View style={{ flexDirection: "row", alignItems: "center", gap: 13 }}>
             <View style={{ width: 54, height: 54, borderRadius: 18, backgroundColor: `${COLORS.purple}18`, alignItems: "center", justifyContent: "center" }}>
               <NotebookPen color={COLORS.purple} size={26} />
@@ -11270,11 +11270,11 @@ function NoteDetail({ data, mutate, nav, theme, params }: ScreenProps) {
       <BackHeader nav={nav} theme={theme} label={c.code} />
       <ScrollView contentInsetAdjustmentBehavior="automatic" contentContainerStyle={{ padding: 16, paddingBottom: 40, gap: 16 }}>
         <View><Pill text={c.code} color={c.color} theme={theme} /><Text selectable style={{ color: theme.label, fontSize: 26, fontWeight: "900", marginTop: 10 }}>{note.title}</Text></View>
-        <View style={{ borderRadius: 24, padding: 16, backgroundColor: "#191326", gap: 12 }}>
-          <Text selectable style={{ color: "#D9CBFF", fontSize: 11, fontWeight: "900", letterSpacing: 0.6 }}>{textFor("ai.note.practice_kicker", "PRACTICE FROM THIS NOTE")}</Text>
+        <View style={{ borderRadius: 24, padding: 16, backgroundColor: "#0A0A0A", gap: 12 }}>
+          <Text selectable style={{ color: "rgba(255,255,255,0.72)", fontSize: 11, fontWeight: "900", letterSpacing: 0.6 }}>{textFor("ai.note.practice_kicker", "PRACTICE FROM THIS NOTE")}</Text>
           <Text selectable style={{ color: "rgba(255,255,255,0.78)", lineHeight: 19 }}>{textFor("ai.note.practice_body", "Cards and questions come only from this note, each with the line it came from.")}</Text>
           <View style={{ flexDirection: "row", gap: 9 }}>
-            <Pressable accessibilityRole="button" accessibilityLabel={textFor("ai.note.practice_cards", "Flashcards")} accessibilityHint={textFor("ai.note.practice_cards_hint", "Practice flashcards made from this note")} onPress={() => nav.push("practice", { noteId: note.id, mode: "cards" })} style={{ flex: 1, minHeight: 46, borderRadius: 999, backgroundColor: "#FFFFFF", alignItems: "center", justifyContent: "center" }}><Text style={{ color: "#111114", fontWeight: "900" }}>{textFor("ai.note.practice_cards", "Flashcards")}</Text></Pressable>
+            <Pressable accessibilityRole="button" accessibilityLabel={textFor("ai.note.practice_cards", "Flashcards")} accessibilityHint={textFor("ai.note.practice_cards_hint", "Practice flashcards made from this note")} onPress={() => nav.push("practice", { noteId: note.id, mode: "cards" })} style={{ flex: 1, minHeight: 46, borderRadius: 999, backgroundColor: "#FFFFFF", alignItems: "center", justifyContent: "center" }}><Text style={{ color: "#0A0A0A", fontWeight: "900" }}>{textFor("ai.note.practice_cards", "Flashcards")}</Text></Pressable>
             <Pressable accessibilityRole="button" accessibilityLabel={textFor("ai.note.practice_quiz", "Quiz me")} accessibilityHint={textFor("ai.note.practice_quiz_hint", "Answer practice questions made from this note")} onPress={() => nav.push("practice", { noteId: note.id, mode: "quiz" })} style={{ flex: 1, minHeight: 46, borderRadius: 999, borderWidth: 1, borderColor: "rgba(255,255,255,0.26)", alignItems: "center", justifyContent: "center" }}><Text style={{ color: "#FFFFFF", fontWeight: "900" }}>{textFor("ai.note.practice_quiz", "Quiz me")}</Text></Pressable>
           </View>
         </View>
@@ -11303,18 +11303,18 @@ function ExamModeEntryCard({ exam, theme, nav }: { exam: ExamItem; theme: Return
   const days = daysUntilExam(exam);
   if (days < 0) return null;
   return (
-    <View style={{ borderRadius: 24, padding: 18, backgroundColor: "#191326", gap: 12 }}>
+    <View style={{ borderRadius: 24, padding: 18, backgroundColor: "#0A0A0A", gap: 12 }}>
       <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
-        <View style={{ width: 42, height: 42, borderRadius: 14, backgroundColor: "rgba(255,255,255,0.12)", alignItems: "center", justifyContent: "center" }}><Brain color="#D9CBFF" size={21} /></View>
+        <View style={{ width: 42, height: 42, borderRadius: 14, backgroundColor: "rgba(255,255,255,0.12)", alignItems: "center", justifyContent: "center" }}><Brain color="rgba(255,255,255,0.72)" size={21} /></View>
         <View style={{ flex: 1 }}>
-          <Text selectable style={{ color: "#D9CBFF", fontSize: 11, fontWeight: "900", letterSpacing: 0.6 }}>{textFor("ai.exam.entry_kicker", "EXAM MODE")}</Text>
+          <Text selectable style={{ color: "rgba(255,255,255,0.72)", fontSize: 11, fontWeight: "900", letterSpacing: 0.6 }}>{textFor("ai.exam.entry_kicker", "EXAM MODE")}</Text>
           <Text selectable style={{ color: "#FFFFFF", fontSize: 17, lineHeight: 22, fontWeight: "900" }}>{days === 0 ? textFor("ai.exam.entry_today", "{title} is today", { title: exam.title }) : days === 1 ? textFor("ai.exam.entry_tomorrow", "{title} is tomorrow", { title: exam.title }) : textFor("ai.exam.entry_title", "{title} in {days} days", { title: exam.title, days })}</Text>
         </View>
       </View>
       <Text selectable style={{ color: "rgba(255,255,255,0.72)", lineHeight: 19 }}>{textFor("ai.exam.entry_body", "Flashcards and practice questions from your own notes. Every one cites its source line.")}</Text>
       <Pressable accessibilityRole="button" accessibilityLabel={textFor("ai.exam.entry_cta", "Open Exam Mode")} accessibilityHint={textFor("ai.exam.entry_hint", "Practice for this exam from your own notes")} onPress={() => nav.push("examMode", { id: exam.id })} style={{ minHeight: 48, borderRadius: 999, backgroundColor: "#FFFFFF", alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 8 }}>
-        <Target color="#111114" size={17} />
-        <Text style={{ color: "#111114", fontWeight: "900" }}>{textFor("ai.exam.entry_cta", "Open Exam Mode")}</Text>
+        <Target color="#0A0A0A" size={17} />
+        <Text style={{ color: "#0A0A0A", fontWeight: "900" }}>{textFor("ai.exam.entry_cta", "Open Exam Mode")}</Text>
       </Pressable>
     </View>
   );
@@ -11773,7 +11773,7 @@ function WidgetsScreen({ data, mutate, nav, theme, recordReviewTrigger }: Screen
       <View style={{ paddingHorizontal: 16, gap: 14 }}>
         <LiquidGlassSurface tintColor={theme.dark ? "rgba(23,23,28,0.72)" : "rgba(255,255,255,0.76)"} colorScheme={theme.dark ? "dark" : "light"} style={{ borderRadius: 22, padding: 18, backgroundColor: theme.dark ? "#17171C" : "#FFFFFF", borderWidth: 1, borderColor: theme.hairline }} fallbackStyle={{ backgroundColor: theme.dark ? "#17171C" : "#FFFFFF" }}>
           <View style={{ flexDirection: "row", gap: 14, alignItems: "center" }}>
-            <View style={{ width: 72, height: 72, borderRadius: 22, backgroundColor: "#111114", alignItems: "center", justifyContent: "center" }}><Grid2X2 color="#fff" size={30} /></View>
+            <View style={{ width: 72, height: 72, borderRadius: 22, backgroundColor: "#0A0A0A", alignItems: "center", justifyContent: "center" }}><Grid2X2 color="#fff" size={30} /></View>
             <View style={{ flex: 1 }}>
               <Text selectable style={{ color: theme.label, fontSize: 21, lineHeight: 25, fontWeight: "900" }}>{data.prefs.premium ? syncing ? textFor("widgets.syncing", "Syncing...") : widgetsUpToDate ? textFor("widgets.up_to_date_title", "Widgets are up to date") : textFor("widgets.ready_to_sync_title", "Widgets are ready to sync") : textFor("widgets.locked_title", "Unlock widgets")}</Text>
 	              <Text selectable style={{ color: theme.label2, lineHeight: 20, marginTop: 4 }}>{data.prefs.premium ? textFor("widgets.ready_body", "Today, upcoming deadlines, semester calendar, and class progress match your iPhone widgets after sync.") : textFor("widgets.locked_body", "Apply a syllabus and unlock to keep widgets current.")}</Text>
@@ -11870,7 +11870,7 @@ function Profile({ data, mutate, nav, theme }: ScreenProps) {
       <Header title={textFor("tabs.profile", "Profile")} sub={textFor("profile.active_semester", "Active semester")} theme={theme} />
       <View style={{ paddingHorizontal: 16, gap: 16 }}>
         <Card theme={theme} style={{ padding: 18 }}><View style={{ flexDirection: "row", gap: 14, alignItems: "center" }}><View style={{ width: 62, height: 62, borderRadius: 99, backgroundColor: theme.accent, alignItems: "center", justifyContent: "center" }}><Text style={{ color: "#fff", fontSize: 26, fontWeight: "900" }}>{userInitial(data)}</Text></View><View style={{ flex: 1 }}><Text selectable style={{ color: theme.label, fontSize: 24, fontWeight: "900" }}>{firstNameFromPrefs(data)}</Text><Text selectable style={{ color: theme.label2 }}>{optionText(data.prefs.level)} · {optionText(data.prefs.studentPersona || "School semester")}</Text><View style={{ flexDirection: "row", gap: 6, marginTop: 6 }}><Pill text={data.prefs.premium ? textFor("profile.subscribed", "Subscribed") : textFor("profile.locked", "Locked")} color={data.prefs.premium ? COLORS.green : COLORS.orange} icon="crown" theme={theme} /><Pill text={textFor("profile.on_device", "On device")} color={COLORS.green} icon="shield" theme={theme} /></View></View></View><View style={{ marginTop: 18 }}><View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 7 }}><Text selectable style={{ color: theme.label2, fontWeight: "900" }}>{textFor("profile.semester_progress", "SEMESTER PROGRESS")}</Text><Text selectable style={{ color: theme.label2 }}>{liveData.classes.length ? textFor("profile.classes_count", "{count} classes", { count: liveData.classes.length }) : textFor("profile.no_semester", "No semester yet")}</Text></View><ProgressBar value={liveData.tasks.length ? liveData.tasks.filter((task) => task.done).length / liveData.tasks.length : 0} color={theme.accent} theme={theme} /></View></Card>
-        <Pressable accessibilityRole={data.prefs.premium ? "link" : "button"} accessibilityLabel={data.prefs.premium ? textFor("profile.manage_subscription", "Manage subscription") : textFor("locked.unlock", "Unlock StudyPlanner")} accessibilityHint={data.prefs.premium ? textFor("profile.accessibility_manage_hint", "Open subscription management for this store account") : textFor("profile.accessibility_unlock_hint", "Open StudyPlanner subscription options")} onPress={() => data.prefs.premium ? openExternal(MANAGE_SUBSCRIPTION_URL) : nav.push("paywall")}><View style={{ borderRadius: 22, padding: 18, backgroundColor: "#282139" }}><View style={{ flexDirection: "row", gap: 8, marginBottom: 8 }}><Crown color={COLORS.yellow} size={19} /><Text selectable style={{ color: "#fff", fontWeight: "900" }}>{textFor("profile.subscription", "StudyPlanner subscription")}</Text></View><Text selectable style={{ color: "rgba(255,255,255,.85)" }}>{textFor("profile.subscription_body", "Scans, reminders, study sets, and planning are active.")}</Text></View></Pressable>
+        <Pressable accessibilityRole={data.prefs.premium ? "link" : "button"} accessibilityLabel={data.prefs.premium ? textFor("profile.manage_subscription", "Manage subscription") : textFor("locked.unlock", "Unlock StudyPlanner")} accessibilityHint={data.prefs.premium ? textFor("profile.accessibility_manage_hint", "Open subscription management for this store account") : textFor("profile.accessibility_unlock_hint", "Open StudyPlanner subscription options")} onPress={() => data.prefs.premium ? openExternal(MANAGE_SUBSCRIPTION_URL) : nav.push("paywall")}><View style={{ borderRadius: 22, padding: 18, backgroundColor: "#0A0A0A" }}><View style={{ flexDirection: "row", gap: 8, marginBottom: 8 }}><Crown color={COLORS.yellow} size={19} /><Text selectable style={{ color: "#fff", fontWeight: "900" }}>{textFor("profile.subscription", "StudyPlanner subscription")}</Text></View><Text selectable style={{ color: "rgba(255,255,255,.85)" }}>{textFor("profile.subscription_body", "Scans, reminders, study sets, and planning are active.")}</Text></View></Pressable>
         {ai.availability ? <AIStatusRow theme={theme} t={aiText} locale={ai.locale} availability={ai.availability} enabled={ai.enabled} onToggle={toggleAI} onClear={clearAIData} clearing={clearingAI} /> : null}
         <Card theme={theme} style={{ overflow: "hidden" }}>{rows.map(([icon, color, title, value, route]) => <Pressable key={`profile-row-${route}`} accessibilityRole={route === "manage" || route === "privacy" || route === "terms" || route === "support" ? "link" : "button"} accessibilityLabel={`${title}. ${value}`} accessibilityHint={route === "manage" ? textFor("profile.accessibility_manage_hint", "Open subscription management for this store account") : route === "privacy" ? textFor("paywall.accessibility_privacy_hint", "Open the privacy policy") : route === "terms" ? textFor("paywall.accessibility_terms_hint", "Open the subscription terms") : route === "support" ? textFor("paywall.accessibility_support_hint", "Open StudyPlanner support") : textFor("profile.accessibility_row_hint", "Open this setting")} onPress={() => {
           if (route === "scan") nav.tab("scan");

@@ -5,13 +5,15 @@ export const TODAY = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 
 
 export const COLORS = {
   blue: "#0A84FF",
-  purple: "#7B5CFF",
+  // 2.2 monochrome: decorative hues collapse to graphite; only semantic
+  // feedback colors (green / orange / red / blue) remain as accents.
+  purple: "#1C1C1E",
   green: "#30D158",
   orange: "#FF9F0A",
   red: "#FF453A",
-  pink: "#FF375F",
-  teal: "#40C8E0",
-  yellow: "#FFD60A",
+  pink: "#1C1C1E",
+  teal: "#636366",
+  yellow: "#1C1C1E",
   ink: "#0A0A0D",
 };
 

@@ -143,6 +143,7 @@ function oracleItems(fixture: EvalFixture, chunk: string, now: Date): RawSyllabu
 checkAsync("grounded model output merges with origins and lifts recall without inventing dates", async () => {
   const baselineScores = [];
   const mergedScores = [];
+  const trustedScores = [];
   const modelOnlyScores = [];
   let oracleItemCount = 0;
   for (const fixture of fixtures) {
@@ -170,16 +171,18 @@ checkAsync("grounded model output merges with origins and lifts recall without i
     }
     baselineScores.push(scoreFixture(fixture, predictionsFrom(heuristic)));
     mergedScores.push(scoreFixture(fixture, predictionsFrom(result.batch)));
+    trustedScores.push(scoreFixture(fixture, predictionsFrom({ ...result.batch, candidates: result.batch.candidates.filter((candidate) => candidate.approved && candidate.confidence >= 0.85) })));
     modelOnlyScores.push(scoreFixture(fixture, predictionsFrom({ ...result.batch, candidates: result.batch.candidates.filter((candidate) => candidate.origin !== "heuristic") })));
   }
   const baseline = totals(baselineScores);
   const merged = totals(mergedScores);
   const modelOnly = totals(modelOnlyScores);
+  const trusted = totals(trustedScores);
   assert.ok(oracleItemCount > 100, `oracle produced ${oracleItemCount} grounded items`);
   assert.ok(merged.recall >= baseline.recall + 0.1, `recall ${merged.recall.toFixed(3)} ≥ baseline ${baseline.recall.toFixed(3)} + 0.10`);
   assert.equal(merged.invented, baseline.invented, "validated model items add no invented dates");
   assert.ok(modelOnly.precision >= 0.95, `validated model/agreed items precision ${modelOnly.precision.toFixed(3)}`);
-  console.log(`  oracle pipeline: baseline recall ${(baseline.recall * 100).toFixed(1)}% → merged ${(merged.recall * 100).toFixed(1)}%; validated-item precision ${(modelOnly.precision * 100).toFixed(1)}%`);
+  console.log(`  oracle pipeline: baseline recall ${(baseline.recall * 100).toFixed(1)}% → merged ${(merged.recall * 100).toFixed(1)}%; validated-item precision ${(modelOnly.precision * 100).toFixed(1)}%; one-tap trusted set precision ${(trusted.precision * 100).toFixed(1)}% (recall ${(trusted.recall * 100).toFixed(1)}%)`);
 });
 
 checkAsync("multi-chunk documents link items to the course named in an earlier chunk", async () => {

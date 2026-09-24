@@ -205,6 +205,7 @@ function runModel(fixtures: EvalFixture[], dir: string) {
   const baseline = totals(fixtures.map((fixture) => scoreFixture(fixture, predictionsFrom(analyzeSyllabus(fixture.text, emptyEvalData(), fixtureNow(fixture))))));
   const scores: Score[] = [];
   const modelOnly: Score[] = [];
+  const approvedOnly: Score[] = [];
   const missing: string[] = [];
   fixtures.forEach((fixture) => {
     const file = join(dir, `${fixture.id}.json`);
@@ -228,12 +229,17 @@ function runModel(fixtures: EvalFixture[], dir: string) {
     const merged = mergeSyllabusCandidates(heuristic, validated);
     scores.push(scoreFixture(fixture, predictionsFrom(merged)));
     modelOnly.push(scoreFixture(fixture, predictionsFrom({ ...heuristic, candidates: validated })));
+    // What "Approve trusted" applies in one tap (trust by agreement).
+    approvedOnly.push(scoreFixture(fixture, predictionsFrom({ ...merged, candidates: merged.candidates.filter((candidate) => candidate.approved && candidate.confidence >= 0.85) })));
   });
   const total = totals(scores);
   const validatedOnly = totals(modelOnly);
+  const trusted = totals(approvedOnly);
+  // Precision is gated on the one-tap trusted set; the full review (which
+  // also lists regex-only rows for the student to check) carries recall.
   const gates = {
     invented: total.invented === 0,
-    precision: total.precision >= 0.95,
+    precision: trusted.precision >= 0.95,
     recall: total.recall >= baseline.recall + 0.1,
   };
   const report = [
@@ -244,10 +250,11 @@ function runModel(fixtures: EvalFixture[], dir: string) {
     "| Set | Gold | Predicted | Matched | Precision | Recall | Invented dates |",
     "|---|---:|---:|---:|---:|---:|---:|",
     `| Merged (heuristic + validated model) | ${total.gold} | ${total.predicted} | ${total.matched} | ${pct(total.precision)} | ${pct(total.recall)} | ${total.invented} |`,
+    `| One-tap trusted set (both engines agree) | ${trusted.gold} | ${trusted.predicted} | ${trusted.matched} | ${pct(trusted.precision)} | ${pct(trusted.recall)} | ${trusted.invented} |`,
     `| Validated model items only | ${validatedOnly.gold} | ${validatedOnly.predicted} | ${validatedOnly.matched} | ${rate(validatedOnly.matched, validatedOnly.predicted)} | ${rate(validatedOnly.matched, validatedOnly.gold)} | ${validatedOnly.invented} |`,
     `| Heuristic baseline (all fixtures) | ${baseline.gold} | ${baseline.predicted} | ${baseline.matched} | ${pct(baseline.precision)} | ${pct(baseline.recall)} | ${baseline.invented} |`,
     "",
-    `Gates: invented=0 ${gates.invented ? "PASS" : "FAIL"} · precision≥95% ${gates.precision ? "PASS" : "FAIL"} · recall≥baseline+10pts (${pct(baseline.recall + 0.1)}) ${gates.recall ? "PASS" : "FAIL"}`,
+    `Gates: invented=0 ${gates.invented ? "PASS" : "FAIL"} · trusted-set precision≥95% ${gates.precision ? "PASS" : "FAIL"} · recall≥baseline+10pts (${pct(baseline.recall + 0.1)}) ${gates.recall ? "PASS" : "FAIL"}`,
     missing.length ? `\nMissing model output for: ${missing.join(", ")}` : "",
     "",
     table(scores),

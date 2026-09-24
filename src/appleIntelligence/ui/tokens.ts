@@ -48,11 +48,11 @@ export const TYPE = {
 
 /** Dark hero surfaces used across the app (LockedDashboard, Paywall, SemesterKickoff). */
 export const HERO = {
-  ink: "#111114",
-  plum: "#191326",
-  plumDark: "#1C1730",
-  lavender: "#B89CFF",
-  lavenderSoft: "#D9CBFF",
+  ink: "#0A0A0A",
+  plum: "#0A0A0A",
+  plumDark: "#0A0A0A",
+  lavender: "#FFFFFF",
+  lavenderSoft: "rgba(255,255,255,0.72)",
   onHero: "#FFFFFF",
   onHero2: "rgba(255,255,255,0.78)",
   onHero3: "rgba(255,255,255,0.62)",
@@ -66,8 +66,9 @@ export function heroBackground(theme: AITheme) {
   return theme.dark ? HERO.plumDark : HERO.plum;
 }
 
-export function cardShadow(theme: AITheme) {
-  return theme.dark ? "0 8px 20px rgba(0,0,0,0.30)" : "0 8px 18px rgba(20,20,40,0.08)";
+export function cardShadow(_theme: AITheme) {
+  // Minimalist system: hairline borders, no drop shadows.
+  return "none";
 }
 
 /** `${hex}${alpha}` tint helper matching App.tsx usage (e.g. `${COLORS.green}1F`). */
@@ -107,20 +108,21 @@ export type ForecastCellStyle = {
 };
 
 const FORECAST_SCALE = {
+  // Grayscale intensity; red is the only hue, reserved for crunch weeks.
   light: {
-    steady: { background: "rgba(48,209,88,0.30)", foreground: "#0B4A1C" },
-    busy: { background: COLORS.orange, foreground: "#3A2400" },
+    steady: { background: "rgba(0,0,0,0.14)", foreground: "#0A0A0A" },
+    busy: { background: "rgba(0,0,0,0.42)", foreground: "#FFFFFF" },
     crunch: { background: COLORS.red, foreground: "#FFFFFF", ring: "rgba(255,69,58,0.38)", glow: "0 0 10px rgba(255,69,58,0.45)" },
   },
   dark: {
-    steady: { background: "rgba(48,209,88,0.42)", foreground: "#FFFFFF" },
-    busy: { background: COLORS.orange, foreground: "#2A1A00" },
+    steady: { background: "rgba(255,255,255,0.22)", foreground: "#FFFFFF" },
+    busy: { background: "rgba(255,255,255,0.50)", foreground: "#000000" },
     crunch: { background: COLORS.red, foreground: "#FFFFFF", ring: "rgba(255,69,58,0.50)", glow: "0 0 12px rgba(255,69,58,0.65)" },
   },
   hero: {
     calm: { background: "rgba(255,255,255,0.09)", foreground: "rgba(255,255,255,0.62)" },
-    steady: { background: "rgba(48,209,88,0.55)", foreground: "#FFFFFF" },
-    busy: { background: COLORS.orange, foreground: "#2A1A00" },
+    steady: { background: "rgba(255,255,255,0.26)", foreground: "#FFFFFF" },
+    busy: { background: "rgba(255,255,255,0.55)", foreground: "#000000" },
     crunch: { background: COLORS.red, foreground: "#FFFFFF", ring: "rgba(255,69,58,0.55)", glow: "0 0 14px rgba(255,69,58,0.75)" },
   },
 } as const;
@@ -134,8 +136,7 @@ export function forecastCellStyle(level: ForecastColor, theme: AITheme, surface:
 /** Text/icon accent for a forecast level on regular surfaces (legend labels, pills). */
 export function forecastAccent(level: ForecastColor, theme: AITheme) {
   if (level === "crunch") return semanticText(COLORS.red, theme);
-  if (level === "busy") return semanticText(COLORS.orange, theme);
-  if (level === "steady") return semanticText(COLORS.green, theme);
+  if (level === "busy" || level === "steady") return theme.label2;
   return theme.label3;
 }
 

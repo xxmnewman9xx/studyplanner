@@ -68,6 +68,20 @@ export function mergeSyllabusCandidates(heuristic: ImportBatch, model: ImportCan
     merged.push({ ...incoming, origin: "onDevice", approved: false });
   }
 
+  // Trust by agreement: once the model has confirmed at least one dated row,
+  // dated rows only the regex found stay in the review but are no longer
+  // pre-approved (and fall below "Approve trusted"). Recall is unchanged; what
+  // the student approves in one tap is what both engines agree on.
+  const modelConfirmedDated = merged.some((candidate) => candidate.origin === "both" && (candidate.kind === "task" || candidate.kind === "exam"));
+  if (modelConfirmedDated) {
+    for (let i = 0; i < heuristicCount; i += 1) {
+      const candidate = merged[i];
+      if (candidate.origin === "heuristic" && (candidate.kind === "task" || candidate.kind === "exam")) {
+        merged[i] = { ...candidate, approved: false, confidence: Math.min(candidate.confidence, 0.7) };
+      }
+    }
+  }
+
   const indexed = merged.map((candidate, index) => ({ candidate, index }));
   const kept = indexed
     .slice()
