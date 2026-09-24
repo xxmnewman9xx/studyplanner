@@ -17,6 +17,7 @@ import {
   Image as RNImage,
 	  KeyboardAvoidingView,
 	  Linking,
+  Modal,
   Platform,
 	  Pressable,
   ScrollView,
@@ -150,11 +151,18 @@ import { AI_COPY, COPY_22_EN } from "./src/appleIntelligence/copy";
 import { createModelRunner, getAvailability, invalidateAvailability, isUserAIEnabled, readDocumentText, setUserAIEnabled } from "./src/appleIntelligence/client";
 import { analyzeSyllabusSmart } from "./src/appleIntelligence/smartSyllabus";
 import * as aiCache from "./src/appleIntelligence/cache";
-import { clearSpotlight, deleteAppGroupJSON, readAppGroupJSON } from "./src/appleIntelligence/native";
+import { clearSpotlight, deleteAppGroupJSON, indexSpotlight, readAppGroupJSON, writeAppGroupJSON } from "./src/appleIntelligence/native";
+import { useDailyBrief } from "./src/appleIntelligence/useDailyBrief";
+import { intelligenceSnapshot } from "./src/appleIntelligence/inbox";
+import type { DailyBrief } from "./src/appleIntelligence/types";
 import type { AIAvailability } from "./src/appleIntelligence/types";
-import { AIStatusRow, ForecastSection, ForecastShareCard, OriginChip, ScanProgress, UnlockForecastCTA, shareForecastCard, type AIText } from "./src/appleIntelligence/ui";
+import { AIStatusRow, ClassPackSheet, DuelIntroCard, ExamModeScreen, ForecastSection, ForecastShareCard, OriginChip, PracticeSession, ScanProgress, StudyNowCard, UnlockForecastCTA, shareForecastCard, shareLink, type AIText, type ExamModeSummary, type PracticeAnswer, type PracticeMode, type PracticeScore } from "./src/appleIntelligence/ui";
 import { buildCrunchForecast, type CrunchForecastResult } from "./src/crunchForecast";
-import { appStoreLink } from "./src/classPack";
+import { appStoreLink, classPackFromData, decodeShared, duelFromStudySet, duelLink, duelToStudyQuestions, packLink, qrEligible } from "./src/classPack";
+import { useStudySets } from "./src/appleIntelligence/useStudySets";
+import { computeWeakTopics, proposeWeakTopicBlocks } from "./src/appleIntelligence/weakTopics";
+import type { PracticeResult, StudySet } from "./src/appleIntelligence/types";
+import { qrMatrix } from "./src/qrMatrix";
 
 declare const process:
   | {
@@ -166,6 +174,10 @@ declare const process:
 // <I18nProvider> labelForTab(tab.id, t) t(tab.labelKey
 
 type Route =
+  | "examMode"
+  | "practice"
+  | "duel"
+  | "forecast"
   | "welcome"
   | "onboarding"
   | "importOptions"
@@ -4924,6 +4936,8 @@ const PRE_PURCHASE_ROUTES: Route[] = ["welcome", "onboarding", "importOptions", 
 // Forecast built from that pending review) is free. Nothing reaches the live
 // planner, reminders, or widgets until an entitlement applies the review.
 const FREE_IMPORT_ROUTES: Route[] = ["scan", "cameraScanner", "paste", "review"];
+// Playing a Quiz Duel a classmate sent is free (it never touches the planner).
+const FREE_PLAY_ROUTES: Route[] = ["duel"];
 type EntitlementStatus = "loading" | "active" | "inactive" | "error";
 type AccessState = "loading" | "onboarding" | "preview_allowed" | "locked" | "paywall" | "unlocked";
 type UnlockSuccessSource = "purchase_action" | "restore_action" | "startup_hydration" | "google_play_review_access";
@@ -5028,10 +5042,11 @@ function appAccessLocked(data: AppData, entitlementStatus: EntitlementStatus) {
 function accessStateFor(data: AppData, entitlementStatus: EntitlementStatus, active?: Route): AccessState {
   if (!onboardingComplete(data)) return active === "semesterKickoff" ? "preview_allowed" : "onboarding";
   if (entitlementUnlocks(data, entitlementStatus)) return "unlocked";
-  if (entitlementStatus === "loading") return PRE_PURCHASE_ROUTES.includes(active || "lockedDashboard") || (active && FREE_IMPORT_ROUTES.includes(active)) ? "preview_allowed" : "loading";
+  if (entitlementStatus === "loading") return PRE_PURCHASE_ROUTES.includes(active || "lockedDashboard") || (active && (FREE_IMPORT_ROUTES.includes(active) || FREE_PLAY_ROUTES.includes(active))) ? "preview_allowed" : "loading";
   if (active === "paywall") return "paywall";
   if (PRE_PURCHASE_ROUTES.includes(active || "lockedDashboard")) return "preview_allowed";
   if (active && FREE_IMPORT_ROUTES.includes(active)) return "preview_allowed";
+  if (active && FREE_PLAY_ROUTES.includes(active)) return "preview_allowed";
   return "locked";
 }
 
@@ -5834,6 +5849,13 @@ export default function App() {
   const [smartImportProgress, setSmartImportProgress] = useState<SmartImportProgress | null>(null);
   const smartImportAbort = useRef<AbortController | null>(null);
   const latestDataRef = useRef<AppData | null>(null);
+  const briefData = useMemo(() => (data && entitlementStatus === "active" ? activeSemesterData(data) : null), [data, entitlementStatus]);
+  const dailyBrief = useDailyBrief(briefData, aiText, appLocale());
+  const dailyBriefRef = useRef<DailyBrief | null>(null);
+  dailyBriefRef.current = dailyBrief;
+  const spotlightSignatureRef = useRef<string>("");
+  const [classPackClassId, setClassPackClassId] = useState<string | null>(null);
+  const selfRepairDayRef = useRef<string>("");
   const routeUrlRef = useRef<((url: string) => void) | null>(null);
   const theme = palette(data?.prefs.theme || "light", data?.prefs.semesterAccentColor);
 
@@ -6022,7 +6044,10 @@ export default function App() {
               return { ...current, prefs: { ...current.prefs, osLive: false, widgetLastSyncedAt: undefined } };
             });
             try {
-              const status = await syncNativeWidgets(widgetSyncData, widgetCopyFor);
+              const brief = dailyBriefRef.current;
+              const status = await syncNativeWidgets(widgetSyncData, widgetCopyFor, {
+                studyNow: !appAccessLocked(persistedSnapshot, entitlementStatus) && brief ? { line: brief.line, reason: brief.reason, dateKey: brief.dateKey } : null,
+              });
               if (status.state !== "synced") {
                 invalidateWidgetSyncEvidence();
                 setSaveError(status.message || textFor("storage.widget_retry", "Planner changes are saved, but widgets have not refreshed yet."));
@@ -6035,7 +6060,49 @@ export default function App() {
         })
         .catch(() => setSaveError(textFor("storage.save_retry", "Changes are safe in this session but could not be saved to this device yet.")));
     }
-  }, [data, entitlementStatus, loaded, saveAttempt]);
+  }, [data, entitlementStatus, loaded, saveAttempt, dailyBrief?.line, dailyBrief?.reason]);
+
+  // Siri (App Intents) and Spotlight read an App Group snapshot the app writes;
+  // extensions never run inference. A locked planner publishes nothing.
+  useEffect(() => {
+    if (Platform.OS !== "ios" || !loaded || !data || entitlementStatus === "loading") return;
+    const unlocked = entitlementUnlocks(data, entitlementStatus);
+    const snapshot = intelligenceSnapshot(unlocked ? data : lockedWidgetData(data), unlocked ? dailyBrief : null, new Date());
+    writeAppGroupJSON("intelligence-snapshot", JSON.stringify(snapshot)).catch(() => {});
+    const signature = JSON.stringify([snapshot.classes, snapshot.deadlines.map((item) => [item.id, item.title, item.dueDate, item.classCode])]);
+    if (signature === spotlightSignatureRef.current) return;
+    spotlightSignatureRef.current = signature;
+    if (!unlocked || (!snapshot.classes.length && !snapshot.deadlines.length)) clearSpotlight().catch(() => {});
+    else indexSpotlight({ classes: snapshot.classes, deadlines: snapshot.deadlines }).catch(() => {});
+  }, [data, dailyBrief, entitlementStatus, loaded]);
+
+  // "Missed a session? The plan quietly repairs itself." Once per day, on the
+  // first unlocked foreground, study blocks whose time has passed without being
+  // completed get the same deterministic make-up block as the Plan "Missed?"
+  // action. No inference; capped so a long absence can't flood tomorrow.
+  useEffect(() => {
+    if (!loaded || entitlementStatus !== "active") return;
+    const repair = () => {
+      const today = localDateKey(new Date());
+      if (selfRepairDayRef.current === today) return;
+      selfRepairDayRef.current = today;
+      setData((current) => {
+        if (!current) return current;
+        const missed = current.studyBlocks.filter((block) => canMarkStudyBlockMissed(block) && block.date && block.date < today).slice(0, 3);
+        if (!missed.length) return current;
+        return missed.reduce((acc, block) => {
+          const missedBlock = { ...block, missed: true };
+          const updated = replanAfterMissedBlock({ ...acc, studyBlocks: acc.studyBlocks.map((item) => item.id === block.id ? missedBlock : item) }, missedBlock);
+          return withFeedback(acc, updated, "missStudyBlock", { classId: block.classId, actionId: block.id, dimension: "consistency" });
+        }, current);
+      });
+    };
+    repair();
+    const subscription = AppState.addEventListener("change", (state) => {
+      if (state === "active") repair();
+    });
+    return () => subscription.remove();
+  }, [entitlementStatus, loaded]);
 
   const persistPlannerSnapshot = useCallback(async (snapshot: AppData) => {
     // Import apply is a transaction boundary: queue the exact reviewed
@@ -6352,7 +6419,7 @@ export default function App() {
     ? textFor("storage.save_retry", "Changes are safe in this session but could not be saved to this device yet.")
     : saveError;
 
-  const props = { data: screenData, mutate, persistPlannerSnapshot, nav, theme, params, currentImport, setCurrentImport, setEntitlementStatus, accessState, recordReviewTrigger, startSyllabusImport, smartImportBusy: Boolean(smartImportProgress) };
+  const props = { data: screenData, mutate, persistPlannerSnapshot, nav, theme, params, currentImport, setCurrentImport, setEntitlementStatus, accessState, recordReviewTrigger, startSyllabusImport, smartImportBusy: Boolean(smartImportProgress), dailyBrief, openClassPack: setClassPackClassId };
   const screen =
     displayRoute === "welcome" ? <Welcome {...props} /> :
     displayRoute === "onboarding" ? <Onboarding {...props} /> :
@@ -6382,6 +6449,10 @@ export default function App() {
     displayRoute === "studySession" ? <StudySession {...props} /> :
     displayRoute === "homePreview" ? <HomePreview {...props} /> :
     displayRoute === "lockPreview" ? <LockPreview {...props} /> :
+    displayRoute === "examMode" ? <ExamModeRoute key={`examMode:${params.id || ""}`} {...props} /> :
+    displayRoute === "practice" ? <PracticeRoute key={`practice:${params.examId || ""}:${params.noteId || ""}:${params.mode || ""}`} {...props} /> :
+    displayRoute === "duel" ? <DuelRoute key={`duel:${params.p || ""}`} {...props} /> :
+    displayRoute === "forecast" ? <ForecastRoute {...props} /> :
     <Today {...props} />;
 
   const showTabs = entitlementUnlocks(data, entitlementStatus) && stack.length === 0 && !["welcome", "onboarding", "importOptions", "lockedDashboard", "paywall"].includes(displayRoute);
@@ -6411,9 +6482,38 @@ export default function App() {
           />
         </View>
       ) : null}
+      {classPackClassId ? <ClassPackModal data={screenData} classId={classPackClassId} theme={theme} onClose={() => setClassPackClassId(null)} /> : null}
       {showPendingImportBanner && currentImport ? <PendingImportResumeBanner batch={currentImport} nav={nav} theme={theme} hasTabs={showTabs} /> : null}
       {showTabs ? <TabBar tab={tab} setTab={nav.tab} theme={theme} /> : null}
     </View>
+  );
+}
+
+function ClassPackModal({ data, classId, theme, onClose }: { data: AppData; classId: string; theme: ReturnType<typeof palette>; onClose: () => void }) {
+  const klass = data.classes.find((item) => item.id === classId);
+  const pack = useMemo(() => classPackFromData(data, classId), [classId, data]);
+  const link = pack ? packLink(pack) : "";
+  const matrix = useMemo(() => (link && qrEligible(link) ? qrMatrix(link) : null), [link]);
+  if (!klass || !pack) return null;
+  return (
+    <Modal visible animationType="slide" presentationStyle="pageSheet" onRequestClose={onClose}>
+      <ScrollView style={{ flex: 1, backgroundColor: theme.bg }} contentContainerStyle={{ padding: 18, paddingTop: 24, paddingBottom: 40 }}>
+        <ClassPackSheet
+          theme={theme}
+          t={aiText}
+          locale={appLocale()}
+          className={klass.name || klass.code}
+          classCode={klass.code}
+          itemCount={pack.i.length}
+          link={link}
+          matrix={matrix}
+          onShareLink={() => {
+            shareLink(textFor("ai.pack.share_message", "Here are all the {code} deadlines. Tap to add them to StudyPlanner:", { code: klass.code }), link).catch(() => {});
+          }}
+          onDone={onClose}
+        />
+      </ScrollView>
+    </Modal>
   );
 }
 
@@ -6431,6 +6531,8 @@ type ScreenProps = {
   recordReviewTrigger: (trigger: ReviewTrigger) => void;
   startSyllabusImport: (sourceText: string, sourceName: string, options?: { documentReader?: boolean }) => Promise<void>;
   smartImportBusy: boolean;
+  dailyBrief: DailyBrief | null;
+  openClassPack: (classId: string) => void;
 };
 
 function withFeedback(
@@ -7721,8 +7823,34 @@ function Paywall({ data, mutate, nav, theme, params, currentImport, setCurrentIm
   );
 }
 
-function Today({ data, mutate, nav, theme, recordReviewTrigger }: ScreenProps) {
+function Today({ data, mutate, nav, theme, recordReviewTrigger, dailyBrief, openClassPack }: ScreenProps) {
   const liveData = useMemo(() => activeSemesterData(data), [data]);
+  const termForecast = useMemo(() => {
+    const forecast = buildCrunchForecast(liveData, new Date());
+    return forecast.weeks.length && forecast.totals.items ? forecast : null;
+  }, [liveData]);
+  const forecastShare = useForecastShare(termForecast, theme);
+  const startBrief = () => {
+    const candidate = dailyBrief?.candidate;
+    if (!candidate) return;
+    if (candidate.blockId && liveData.studyBlocks.some((block) => block.id === candidate.blockId)) nav.push("studySession", { id: candidate.blockId });
+    else if (candidate.examId) nav.push("examMode", { id: candidate.examId });
+    else if (candidate.taskId) nav.push("taskDetail", { id: candidate.taskId });
+    else if (candidate.noteId) nav.push("noteDetail", { id: candidate.noteId });
+    else nav.tab("plan");
+  };
+  const laterBrief = () => {
+    const blockId = dailyBrief?.candidate.blockId;
+    if (!blockId) return;
+    mutate((d) => {
+      const block = d.studyBlocks.find((item) => item.id === blockId);
+      if (!block || block.completed) return d;
+      const missedBlock = { ...block, missed: true };
+      const updated = replanAfterMissedBlock({ ...d, studyBlocks: d.studyBlocks.map((item) => item.id === blockId ? missedBlock : item) }, missedBlock);
+      return withFeedback(d, updated, "reschedulePlan", { classId: block.classId, actionId: block.id, dimension: "consistency" });
+    });
+  };
+  const packClassId = termForecast ? (liveData.classes.find((klass) => !klass.archivedAt)?.id || "") : "";
   const snapshot = useMemo(() => buildDashboardSnapshot(liveData), [liveData]);
   const semester = useMemo(() => buildSemesterSnapshot(liveData), [liveData]);
   const narrative = useMemo(() => buildSemesterNarrative(liveData, semester), [liveData, semester]);
@@ -7793,7 +7921,21 @@ function Today({ data, mutate, nav, theme, recordReviewTrigger }: ScreenProps) {
     <Screen theme={theme}>
       <Header title={todayTitle} sub={todayHeaderLabel()} theme={theme} right={<Pressable accessibilityRole="button" accessibilityLabel={textFor("tabs.profile", "Profile")} accessibilityHint={textFor("profile.accessibility_open_hint", "Open profile and app settings")} onPress={() => nav.tab("profile")}><View style={{ width: 44, height: 44, borderRadius: 99, backgroundColor: theme.accent, alignItems: "center", justifyContent: "center" }}><Text style={{ color: "#fff", fontWeight: "900", fontSize: 17 }}>{userInitial(data)}</Text></View></Pressable>} />
       <View style={{ paddingHorizontal: 16, gap: 18 }}>
+        {dailyBrief ? <StudyNowCard theme={theme} t={aiText} locale={appLocale()} brief={dailyBrief} onStart={startBrief} onReschedule={dailyBrief.candidate.blockId ? laterBrief : undefined} /> : null}
+        {termForecast ? (
+          <ForecastSection
+            theme={theme}
+            t={aiText}
+            locale={appLocale()}
+            forecast={termForecast}
+            mode="compact"
+            onShare={forecastShare.share}
+            onClassPack={packClassId ? () => (liveData.classes.filter((klass) => !klass.archivedAt).length > 1 ? nav.tab("classes") : openClassPack(packClassId)) : undefined}
+            onOpen={() => nav.push("forecast")}
+          />
+        ) : null}
         <SemesterHealthHero semester={semester} narrative={narrative} theme={theme} hasSemesterData={hasSemesterData} />
+        {forecastShare.host}
         {semester.feedbackEvents[0] ? <FeedbackLoopCard event={semester.feedbackEvents[0]} theme={theme} /> : null}
         <Card theme={theme} style={{ padding: 18, backgroundColor: theme.dark ? "#17171C" : "#FFFFFF" }}>
           <View style={{ flexDirection: "row", gap: 12, alignItems: "center", marginBottom: 12 }}>
@@ -8249,7 +8391,7 @@ function Classes({ data, mutate, nav, theme }: ScreenProps) {
   );
 }
 
-function ClassDetail({ data, mutate, nav, theme, params }: ScreenProps) {
+function ClassDetail({ data, mutate, nav, theme, params, openClassPack }: ScreenProps) {
   const c = data.classes.find((item) => item.id === params.id);
   if (!c) return <RecoveryScreen title={textFor("class.not_found", "Class not found")} body={textFor("class.not_found_body", "That class is not in this semester anymore.")} action={textFor("class.open_dashboard", "Open dashboard")} nav={nav} theme={theme} />;
   const classTasks = data.tasks.filter((t) => t.classId === c.id);
@@ -8428,6 +8570,20 @@ function ClassDetail({ data, mutate, nav, theme, params }: ScreenProps) {
             <Text selectable style={{ color: theme.label2, marginTop: 3 }}>{c.professor}</Text>
             {c.notes ? <Text selectable style={{ color: theme.label2, marginTop: 8, lineHeight: 19 }}>{c.notes}</Text> : null}
           </Card>
+          {(() => {
+            const nextExam = data.exams.filter((exam) => exam.classId === c.id && daysUntilExam(exam) >= 0).sort((a, b) => daysUntilExam(a) - daysUntilExam(b))[0];
+            return nextExam ? <ExamModeEntryCard exam={nextExam} theme={theme} nav={nav} /> : null;
+          })()}
+          <Pressable accessibilityRole="button" accessibilityLabel={textFor("ai.pack.class_title", "Share Class Pack")} accessibilityHint={textFor("ai.pack.class_hint", "Share this class's deadlines as a link or QR code")} onPress={() => openClassPack(c.id)}>
+            <Card theme={theme} style={{ padding: 15, flexDirection: "row", alignItems: "center", gap: 12 }}>
+              <View style={{ width: 40, height: 40, borderRadius: 13, backgroundColor: `${c.color}1F`, alignItems: "center", justifyContent: "center" }}><Share2 color={c.color} size={19} /></View>
+              <View style={{ flex: 1 }}>
+                <Text selectable style={{ color: theme.label, fontWeight: "900" }}>{textFor("ai.pack.class_title", "Share Class Pack")}</Text>
+                <Text selectable style={{ color: theme.label2, marginTop: 2, lineHeight: 18 }}>{textFor("ai.pack.class_body", "Classmates get every {code} deadline in seconds.", { code: c.code })}</Text>
+              </View>
+              <ChevronRight color={theme.label3} size={17} />
+            </Card>
+          </Pressable>
           {editing ? (
             <Card theme={theme} style={{ padding: 16 }}>
               <Text selectable style={{ color: theme.label, fontSize: 18, fontWeight: "900", marginBottom: 10 }}>{textFor("common.edit", "Edit")}</Text>
@@ -8793,6 +8949,7 @@ function AssessmentDetail({ data, mutate, nav, theme, params }: ScreenProps) {
             <View style={{ flex: 1 }}><Button label={textFor("common.duplicate", "Duplicate")} theme={theme} secondary icon="copy" onPress={duplicateAssessment} /></View>
           </View>
         </View>
+        {!editing ? <ExamModeEntryCard exam={exam} theme={theme} nav={nav} /> : null}
         {editing ? (
           <Card theme={theme} style={{ padding: 16 }}>
             <Text selectable style={{ color: theme.label, fontSize: 18, fontWeight: "900", marginBottom: 10 }}>{textFor("class.assessment", "Assessment")}</Text>
@@ -10844,6 +11001,7 @@ function NoteDetail({ data, mutate, nav, theme, params }: ScreenProps) {
         style: "destructive",
         onPress: () => {
           mutate((d) => ({ ...d, notes: d.notes.filter((item) => item.id !== note.id) }));
+          aiCache.purgeAIDataForNote(note.id).catch(() => {});
           nav.back();
         },
       },
@@ -10854,6 +11012,14 @@ function NoteDetail({ data, mutate, nav, theme, params }: ScreenProps) {
       <BackHeader nav={nav} theme={theme} label={c.code} />
       <ScrollView contentInsetAdjustmentBehavior="automatic" contentContainerStyle={{ padding: 16, paddingBottom: 40, gap: 16 }}>
         <View><Pill text={c.code} color={c.color} theme={theme} /><Text selectable style={{ color: theme.label, fontSize: 26, fontWeight: "900", marginTop: 10 }}>{note.title}</Text></View>
+        <View style={{ borderRadius: 24, padding: 16, backgroundColor: "#191326", gap: 12 }}>
+          <Text selectable style={{ color: "#D9CBFF", fontSize: 11, fontWeight: "900", letterSpacing: 0.6 }}>{textFor("ai.note.practice_kicker", "PRACTICE FROM THIS NOTE")}</Text>
+          <Text selectable style={{ color: "rgba(255,255,255,0.78)", lineHeight: 19 }}>{textFor("ai.note.practice_body", "Cards and questions come only from this note, each with the line it came from.")}</Text>
+          <View style={{ flexDirection: "row", gap: 9 }}>
+            <Pressable accessibilityRole="button" accessibilityLabel={textFor("ai.note.practice_cards", "Flashcards")} accessibilityHint={textFor("ai.note.practice_cards_hint", "Practice flashcards made from this note")} onPress={() => nav.push("practice", { noteId: note.id, mode: "cards" })} style={{ flex: 1, minHeight: 46, borderRadius: 999, backgroundColor: "#FFFFFF", alignItems: "center", justifyContent: "center" }}><Text style={{ color: "#111114", fontWeight: "900" }}>{textFor("ai.note.practice_cards", "Flashcards")}</Text></Pressable>
+            <Pressable accessibilityRole="button" accessibilityLabel={textFor("ai.note.practice_quiz", "Quiz me")} accessibilityHint={textFor("ai.note.practice_quiz_hint", "Answer practice questions made from this note")} onPress={() => nav.push("practice", { noteId: note.id, mode: "quiz" })} style={{ flex: 1, minHeight: 46, borderRadius: 999, borderWidth: 1, borderColor: "rgba(255,255,255,0.26)", alignItems: "center", justifyContent: "center" }}><Text style={{ color: "#FFFFFF", fontWeight: "900" }}>{textFor("ai.note.practice_quiz", "Quiz me")}</Text></Pressable>
+          </View>
+        </View>
         <Card theme={theme} style={{ padding: 16 }}><Text selectable style={{ color: theme.label, fontWeight: "900" }}>{textFor("note.effect", "Effect on {code}", { code: c.code })}</Text><Text selectable style={{ color: theme.label2, marginTop: 7, lineHeight: 20 }}>{pulse ? `${localizedPulseText("forecast", pulse.forecastLabel)}. ${localizedPulseText("nudge", pulse.nudge)}` : textFor("note.readiness_up", "Readiness up.")}</Text></Card>
         <Card theme={theme} style={{ padding: 16, backgroundColor: theme.dark ? "#241E33" : "#F7F0FF" }}><View style={{ flexDirection: "row", gap: 8, marginBottom: 8 }}><Icon name="sparkles" color={COLORS.purple} /><Text selectable style={{ color: theme.label, fontWeight: "900" }}>{textFor("note.summary", "Summary")}</Text></View><Text selectable style={{ color: theme.label, lineHeight: 21 }}>{note.summary}</Text></Card>
         <View><Text selectable style={{ color: theme.label2, fontWeight: "900", marginBottom: 8 }}>{textFor("note.key_terms", "KEY TERMS")}</Text><View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6 }}>{note.terms.map((t) => <Pill key={t} text={t} theme={theme} />)}</View></View>
@@ -10871,6 +11037,273 @@ function NoteDetail({ data, mutate, nav, theme, params }: ScreenProps) {
         <Card theme={theme} style={{ padding: 16 }}><Text selectable style={{ color: theme.label2, fontWeight: "900", marginBottom: 8 }}>{textFor("note.source_text", "SOURCE TEXT")}</Text><Text selectable style={{ color: theme.label2, lineHeight: 21 }}>{note.sourceText}</Text></Card>
         <Button label={textFor("note.delete", "Delete note")} theme={theme} secondary icon="trash" onPress={deleteNote} />
       </ScrollView>
+    </View>
+  );
+}
+
+function ExamModeEntryCard({ exam, theme, nav }: { exam: ExamItem; theme: ReturnType<typeof palette>; nav: ScreenProps["nav"] }) {
+  const days = daysUntilExam(exam);
+  if (days < 0) return null;
+  return (
+    <View style={{ borderRadius: 24, padding: 18, backgroundColor: "#191326", gap: 12 }}>
+      <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
+        <View style={{ width: 42, height: 42, borderRadius: 14, backgroundColor: "rgba(255,255,255,0.12)", alignItems: "center", justifyContent: "center" }}><Brain color="#D9CBFF" size={21} /></View>
+        <View style={{ flex: 1 }}>
+          <Text selectable style={{ color: "#D9CBFF", fontSize: 11, fontWeight: "900", letterSpacing: 0.6 }}>{textFor("ai.exam.entry_kicker", "EXAM MODE")}</Text>
+          <Text selectable style={{ color: "#FFFFFF", fontSize: 17, lineHeight: 22, fontWeight: "900" }}>{days === 0 ? textFor("ai.exam.entry_today", "{title} is today", { title: exam.title }) : textFor("ai.exam.entry_title", "{title} in {days} days", { title: exam.title, days })}</Text>
+        </View>
+      </View>
+      <Text selectable style={{ color: "rgba(255,255,255,0.72)", lineHeight: 19 }}>{textFor("ai.exam.entry_body", "Flashcards and practice questions from your own notes. Every one cites its source line.")}</Text>
+      <Pressable accessibilityRole="button" accessibilityLabel={textFor("ai.exam.entry_cta", "Open Exam Mode")} accessibilityHint={textFor("ai.exam.entry_hint", "Practice for this exam from your own notes")} onPress={() => nav.push("examMode", { id: exam.id })} style={{ minHeight: 48, borderRadius: 999, backgroundColor: "#FFFFFF", alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 8 }}>
+        <Target color="#111114" size={17} />
+        <Text style={{ color: "#111114", fontWeight: "900" }}>{textFor("ai.exam.entry_cta", "Open Exam Mode")}</Text>
+      </Pressable>
+    </View>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// StudyPlanner 2.2: Exam Mode, practice, Quiz Duel, and the full Crunch Forecast.
+// Practice is from the student's own notes (never homework solving). Results
+// live in the on-device AI store, not AppData; the only planner write is the
+// confirmed "extra review" tasks, which go through mutate() like any edit.
+// ---------------------------------------------------------------------------
+
+function notesForExam(data: AppData, examId: string, classId: string) {
+  const linked = data.notes.filter((note) => note.examId === examId);
+  return (linked.length ? linked : data.notes.filter((note) => note.classId === classId)).slice(0, 8);
+}
+
+function ExamModeRoute({ data, mutate, nav, theme, params }: ScreenProps) {
+  const liveData = useMemo(() => activeSemesterData(data), [data]);
+  const exam = liveData.exams.find((item) => item.id === params.id) || null;
+  const klass = exam ? liveData.classes.find((item) => item.id === exam.classId) : undefined;
+  const notes = useMemo(() => (exam ? notesForExam(liveData, exam.id, exam.classId) : []), [exam, liveData]);
+  const sets = useStudySets(notes, liveData, appLocale());
+  const [results, setResults] = useState<PracticeResult[]>([]);
+  useEffect(() => {
+    if (!exam) return;
+    let active = true;
+    aiCache.listPractice({ classId: exam.classId, limit: 500 }).then((rows) => {
+      if (active) setResults(rows);
+    });
+    return () => {
+      active = false;
+    };
+  }, [exam?.id, exam?.classId]);
+  if (!exam) return <RecoveryScreen title={textFor("assessment.missing_title", "Assessment not found")} body={textFor("assessment.missing_body", "This exam may have been removed.")} nav={nav} theme={theme} />;
+  const now = new Date();
+  const examResults = results.filter((row) => row.examId === exam.id || (!row.examId && notes.some((note) => note.id === row.noteId)));
+  const weakTopics = computeWeakTopics(examResults, liveData);
+  const proposal = proposeWeakTopicBlocks(weakTopics, liveData, now);
+  const masteredCards = new Set(examResults.filter((row) => row.kind === "card" && row.correct).map((row) => row.itemId));
+  const summary: ExamModeSummary = {
+    examTitle: exam.title,
+    examKindLabel: exam.kind ? localizedExamKind(exam.kind) : undefined,
+    classCode: klass?.code,
+    className: klass?.name,
+    classColor: klass?.color,
+    examDate: exam.dueDate,
+    examTime: exam.time,
+    daysUntil: Math.max(0, daysUntilExam(exam, now)),
+    notesLinked: notes.length,
+    cardsMastered: sets.cards.filter((card) => masteredCards.has(card.id)).length,
+    cardsTotal: sets.cards.length,
+    answersRecorded: examResults.length,
+    weakTopics,
+    reviewProposal: proposal.length ? { blocks: proposal.length, minutesEach: proposal[0].minutes } : null,
+    studySetOrigin: sets.origin,
+  };
+  const addReviewTasks = () => Alert.alert(
+    textFor("ai.exam.review_confirm_title", "Add {count} review sessions?", { count: proposal.length }),
+    textFor("ai.exam.review_confirm_body", "StudyPlanner adds short review tasks for your weakest topics before the exam. You can edit or delete them anytime."),
+    [
+      { text: textFor("common.cancel", "Cancel"), style: "cancel" },
+      {
+        text: textFor("ai.exam.review_confirm_action", "Add to plan"),
+        onPress: () => mutate((d) => {
+          const nowIso = new Date().toISOString();
+          const additions: TaskItem[] = proposal
+            .filter((block) => block.date && !d.tasks.some((task) => task.source === "Exam Mode" && task.title.endsWith(block.title) && task.dueDate === block.date))
+            .map((block) => ({
+              id: makeOwnershipId("task"),
+              title: textFor("ai.exam.review_task_title", "Review: {topic}", { topic: block.title }),
+              classId: block.classId,
+              type: "Review",
+              dueOffset: 0,
+              dueDate: block.date || "",
+              time: "",
+              estimateMinutes: block.minutes,
+              done: false,
+              urgent: false,
+              source: "Exam Mode",
+              priority: "Medium",
+              description: textFor("ai.exam.review_task_body", "Extra review before {exam}: practice from your own notes.", { exam: exam.title }),
+              subtasks: [],
+              userEditedAt: nowIso,
+            }));
+          if (!additions.length) return d;
+          const tasks = [...additions, ...d.tasks];
+          const updated = { ...d, tasks, studyBlocks: buildStudyPlan({ ...d, tasks }) };
+          return withFeedback(d, updated, "reviewWeakConcept", { classId: exam.classId, actionId: exam.id, dimension: "preparedness" });
+        }),
+      },
+    ],
+  );
+  return (
+    <View style={{ flex: 1, backgroundColor: theme.bg }}>
+      <BackHeader nav={nav} theme={theme} label={textFor("ai.exam.nav_title", "Exam Mode")} />
+      <ExamModeScreen
+        theme={theme}
+        t={aiText}
+        locale={appLocale()}
+        summary={summary}
+        onPracticeCards={() => nav.push("practice", { examId: exam.id, mode: "cards" })}
+        onPracticeQuiz={() => nav.push("practice", { examId: exam.id, mode: "quiz" })}
+        onDuel={sets.questions.length ? () => nav.push("practice", { examId: exam.id, mode: "quiz", duel: "1" }) : undefined}
+        onProposeBlocks={proposal.length ? addReviewTasks : undefined}
+        onAddNotes={() => nav.push("paste", { mode: "notes" })}
+      />
+    </View>
+  );
+}
+
+function PracticeRoute({ data, nav, theme, params }: ScreenProps) {
+  const liveData = useMemo(() => activeSemesterData(data), [data]);
+  const exam = params.examId ? liveData.exams.find((item) => item.id === params.examId) : undefined;
+  const note = params.noteId ? liveData.notes.find((item) => item.id === params.noteId) : undefined;
+  const notes = useMemo(() => (note ? [note] : exam ? notesForExam(liveData, exam.id, exam.classId) : []), [exam, liveData, note]);
+  const sets = useStudySets(notes, liveData, appLocale());
+  const [started, setStarted] = useState(false);
+  const [reported, setReported] = useState<string[]>([]);
+  const mode: PracticeMode = params.mode === "quiz" ? "quiz" : "cards";
+  useEffect(() => {
+    let active = true;
+    // First practice on these notes is the only moment the model may run.
+    sets.prepare().finally(() => {
+      if (active) setStarted(true);
+    });
+    return () => {
+      active = false;
+    };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  const title = exam?.title || note?.title || textFor("ai.practice.title", "Practice");
+  const noteForItem = (itemId: string) => Object.values(sets.byNote).find((set: StudySet) => set.cards.some((card) => card.id === itemId) || set.questions.some((question) => question.id === itemId));
+  const recordAnswer = (answer: PracticeAnswer) => {
+    const set = noteForItem(answer.itemId);
+    const card = sets.cards.find((item) => item.id === answer.itemId);
+    const question = sets.questions.find((item) => item.id === answer.itemId);
+    const concept = card?.front || (question ? set?.concepts.find((value) => question.stem.toLowerCase().includes(value.toLowerCase())) : undefined) || set?.concepts[0];
+    aiCache.recordPractice({
+      id: makeOwnershipId("practice"),
+      noteId: set?.noteId || note?.id || "",
+      examId: exam?.id,
+      classId: exam?.classId || note?.classId,
+      itemId: answer.itemId,
+      kind: answer.kind,
+      concept: concept ? concept.slice(0, 80) : undefined,
+      correct: answer.correct,
+      answeredAt: new Date().toISOString(),
+    }).catch(() => {});
+  };
+  const shareDuel = (score: PracticeScore) => {
+    const duel = duelFromStudySet({ ...(Object.values(sets.byNote)[0] as StudySet), questions: sets.questions } as StudySet, title, score.total ? (score.correct / score.total) * Math.min(10, sets.questions.length) : undefined);
+    if (!duel) return;
+    shareLink(textFor("ai.duel.share_message", "I scored {score}/{total} on {title}. Beat me:", { score: score.correct, total: score.total, title }), duelLink(duel)).catch(() => {});
+  };
+  const cards = sets.cards.filter((card) => !reported.includes(card.id));
+  const questions = sets.questions.filter((question) => !reported.includes(question.id));
+  if (!notes.length || (!cards.length && !questions.length)) {
+    return (
+      <RecoveryScreen
+        title={textFor("ai.practice.empty_title", "Add notes to practice")}
+        body={textFor("ai.practice.empty_body", "Practice is built from your own notes. Add or scan notes for this class, then come back.")}
+        action={textFor("notes.paste", "Paste notes")}
+        nav={nav}
+        theme={theme}
+      />
+    );
+  }
+  return (
+    <View style={{ flex: 1, backgroundColor: theme.bg }}>
+      <BackHeader nav={nav} theme={theme} label={title} />
+      {!started && sets.preparing ? (
+        <View style={{ flex: 1, alignItems: "center", justifyContent: "center", padding: 28, gap: 14 }}>
+          <ActivityIndicator color={theme.accent} />
+          <Text selectable style={{ color: theme.label, fontSize: 18, fontWeight: "900", textAlign: "center" }}>{textFor("ai.practice.preparing", "Building practice from your notes on this iPhone…")}</Text>
+          <Pressable accessibilityRole="button" accessibilityLabel={textFor("ai.practice.start_now", "Start with quick cards")} accessibilityHint={textFor("ai.practice.start_now_hint", "Skips on-device generation and starts right away")} onPress={() => setStarted(true)} style={{ minHeight: 44, justifyContent: "center" }}><Text style={{ color: theme.accent, fontWeight: "900" }}>{textFor("ai.practice.start_now", "Start with quick cards")}</Text></Pressable>
+        </View>
+      ) : (
+        <PracticeSession
+          theme={theme}
+          t={aiText}
+          locale={appLocale()}
+          mode={mode}
+          cards={cards}
+          questions={questions}
+          title={title}
+          origin={sets.origin || undefined}
+          onAnswer={recordAnswer}
+          onShareScore={params.duel === "1" || mode === "quiz" ? shareDuel : undefined}
+          onReportWrong={(itemId) => {
+            setReported((current) => [...current, itemId]);
+            Alert.alert(textFor("ai.practice.reported_title", "Thanks for flagging it"), textFor("ai.practice.reported_body", "That item is hidden from this session. Check it against your notes."));
+          }}
+          onClose={nav.back}
+        />
+      )}
+    </View>
+  );
+}
+
+function DuelRoute({ nav, theme, params }: ScreenProps) {
+  const shared = useMemo(() => decodeShared(params.p || ""), [params.p]);
+  const duel = shared?.kind === "duel" ? shared.duel : null;
+  const [playing, setPlaying] = useState(false);
+  const questions = useMemo(() => (duel ? duelToStudyQuestions(duel) : []), [duel]);
+  if (!duel || !questions.length) {
+    return <RecoveryScreen title={textFor("ai.duel.invalid_title", "This challenge can't be opened")} body={textFor("ai.duel.invalid_body", "The link may be incomplete. Ask your classmate to share it again.")} nav={nav} theme={theme} />;
+  }
+  return (
+    <View style={{ flex: 1, backgroundColor: theme.bg }}>
+      <BackHeader nav={nav} theme={theme} label={textFor("ai.duel.nav_title", "Quiz Duel")} />
+      {playing ? (
+        <PracticeSession theme={theme} t={aiText} locale={appLocale()} mode="quiz" questions={questions} title={duel.title} origin="duel" onAnswer={() => {}} onClose={nav.back} />
+      ) : (
+        <ScrollView contentContainerStyle={{ padding: 16, gap: 14 }}>
+          <DuelIntroCard theme={theme} t={aiText} locale={appLocale()} title={duel.title} questionCount={questions.length} targetScore={duel.score} onStart={() => setPlaying(true)} />
+        </ScrollView>
+      )}
+    </View>
+  );
+}
+
+function ForecastRoute({ data, nav, theme, openClassPack }: ScreenProps) {
+  const liveData = useMemo(() => activeSemesterData(data), [data]);
+  const forecast = useMemo(() => buildCrunchForecast(liveData, new Date()), [liveData]);
+  const share = useForecastShare(forecast.weeks.length ? forecast : null, theme);
+  const classes = liveData.classes.filter((klass) => !klass.archivedAt);
+  return (
+    <View style={{ flex: 1, backgroundColor: theme.bg }}>
+      <BackHeader nav={nav} theme={theme} label={textFor("ai.forecast.nav_title", "Crunch Forecast")} />
+      <ScrollView contentInsetAdjustmentBehavior="automatic" contentContainerStyle={{ padding: 16, paddingBottom: 40, gap: 16 }}>
+        <ForecastSection theme={theme} t={aiText} locale={appLocale()} forecast={forecast.weeks.length ? forecast : null} mode="full" onShare={share.share} onImport={() => nav.push("scan")} />
+        {classes.length ? (
+          <Card theme={theme} style={{ padding: 16, gap: 10 }}>
+            <Text selectable style={{ color: theme.label2, fontSize: 12, fontWeight: "900" }}>{textFor("ai.pack.section_kicker", "SHARE A CLASS PACK")}</Text>
+            <Text selectable style={{ color: theme.label2, lineHeight: 19 }}>{textFor("ai.pack.section_body", "Classmates get the same deadlines in seconds. Only dates, titles and weights are shared.")}</Text>
+            <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+              {classes.map((klass) => (
+                <Pressable key={klass.id} accessibilityRole="button" accessibilityLabel={textFor("ai.pack.share_class", "Share {code} Class Pack", { code: klass.code })} accessibilityHint={textFor("ai.pack.class_hint", "Share this class's deadlines as a link or QR code")} onPress={() => openClassPack(klass.id)} style={{ minHeight: 44, paddingHorizontal: 14, borderRadius: 999, backgroundColor: `${klass.color}1F`, flexDirection: "row", alignItems: "center", gap: 7 }}>
+                  <Share2 color={klass.color} size={15} />
+                  <Text style={{ color: theme.label, fontWeight: "900" }}>{klass.code}</Text>
+                </Pressable>
+              ))}
+            </View>
+          </Card>
+        ) : null}
+      </ScrollView>
+      {share.host}
     </View>
   );
 }

@@ -13,16 +13,20 @@ const scopedComponents = new Map([
   ["Paywall", 7],
   ["Today", 14],
   ["Classes", 3],
-  ["ClassDetail", 4],
+  ["ClassDetail", 5],
   ["Tasks", 0],
   ["TaskDetail", 2],
   ["AssessmentDetail", 1],
   ["Plan", 7],
   ["Notes", 2],
-  ["NoteDetail", 1],
+  ["NoteDetail", 3],
   ["Profile", 2],
   ["TaskRow", 2],
   ["NoteCard", 1],
+  // StudyPlanner 2.2 surfaces (Exam Mode entry, practice loader, Class Pack chips).
+  ["ExamModeEntryCard", 1],
+  ["PracticeRoute", 1],
+  ["ForecastRoute", 1],
 ]);
 const failures = [];
 const inventory = [];
